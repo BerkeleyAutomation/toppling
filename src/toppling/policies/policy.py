@@ -127,97 +127,96 @@ class TopplingPolicy(MultiEnvPolicy):
 
             # sample push points
             vertices, face_ind = sample.sample_surface_even(mesh, 1000)
-            # vertices = mesh.vertices
             projected_vectors = (vertices - com)[:,:2]
             projected_vectors = projected_vectors / np.linalg.norm(projected_vectors, axis=1)[:, None]
             projected_angles = np.arccos(projected_vectors.dot(-push_direction[:2]))
             vertices = vertices[projected_angles < max_push_angle]
-            # normals = mesh.vertex_normals[projected_angles < max_push_angle]
             normals = mesh.face_normals[face_ind[projected_angles < max_push_angle]]
 
+            n_trials = 1
+            if use_sensitivity:
+                n_trials = 25
+                sigma = .00125 # noise for finger position
+                vertices = np.repeat(vertices, n_trials, axis=0)
+                vertices = vertices + np.random.normal(scale=sigma, size=vertices.shape)
+                push_directions = np.repeat(-normals, n_trials, axis=0)
+                intersect_loc, _, face_ind = mesh.ray.intersects_location(vertices, normals, multiple_hits=False)
+                # Finding the normal of the noisy point
+                logging.info(('shape', intersect_loc.shape))
+                closest_intersections = np.argmin(np.linalg.norm(intersect_loc - vertices, axis=1))
+#                vertices = 
+#                normals = 
+
+                noises = 1 + np.random.normal(scale=.1, size=vertices.shape[0]) / self.ground_friction_coeff
+
             # Check whether each push point topples or not
-            probabilities, required_forces = [], []
-            n_trials = 25 if use_sensitivity else 1
-            #sigma = (np.max(z_components) - np.min(z_components)) / 10 #.0025
-            #logging.info(('sigma', sigma))
-            sigma = .00125
+            fraction_before_short_circuit = .4
+            successes, required_forces = [], []
             for i in range(len(vertices)):
-                successes = 0
-                required_force_sum = 0
-                trial_num = 0
-                while trial_num < n_trials:
-                    trial_num += 1
-                    if trial_num > 10 and successes == 0: # short circuit if we are reasonably confident all trials will be failures
-                        trial_num = n_trials
-                        continue
-                    push_direction = -normals[i]
-                    if use_sensitivity:
-                        vertex = vertices[i] + np.random.normal(scale=sigma, size=3)
-                        tmp_vertex = vertex
-                        intersect_loc, _, face_ind = mesh.ray.intersects_location(
-                            np.expand_dims(vertex + normals[i], axis=0), 
-                            np.expand_dims(push_direction, axis=0)
-                        )
-                        
-                        if len(intersect_loc) == 0: # noise causes intersection to miss the object
-                            continue
-                        closest_intersection = np.argmin(np.linalg.norm(intersect_loc - vertex, axis=1))
-                        vertex = intersect_loc[closest_intersection]
-                        normal = mesh.face_normals[face_ind[closest_intersection]]
-                        noise = 1 + np.random.normal(scale=.1) / self.ground_friction_coeff
-                    else:
-                        vertex = vertices[i]
-                        normal = normals[i]
-                        noise = 1
+                if i % n_trials == 0:
+                    current_num_successes = 0
+                if i % n_trials == int(n_trials * fraction_before_short_circuit):
+                    num_left = int(n_trials * (1-fraction_before_short_circuit))
+                    successes.extend([False] * num_left)
+                    required_forces.extend([0] * num_left)
+                    i += num_left
+                    
+                    
+                vertex = vertices[i]
+                normal = normals[i]
+                push_direction = push_directions[i]
+                noise = noises[i] if use_sensitivity else 1
+                    
 
-                    # if vertex[2] < thresh:
-                    #     continue
-                    # finding required force to topple
-                    vertex_projected_on_edge = (vertex - edge_point1).dot(s)*s + edge_point1 
-                    f_max = normalize(np.cross(edge_point1 - vertex, s))
-                    r_f = np.linalg.norm(vertex - vertex_projected_on_edge)
-                    cos_push_vertex_edge_angle = push_direction.dot(f_max)
-                    g_max = normalize(-np.cross(edge_point1 - com, s))
-                    r_g = np.linalg.norm(com - com_projected_on_edge)
-                    cos_com_edge_angle = (-up).dot(g_max)
-                    vertex_projected_on_edge = (vertex - edge_point1).dot(s) + edge_point1
+#                if vertex[2] < thresh:
+#                    continue
+                # finding required force to topple
+                vertex_projected_on_edge = (vertex - edge_point1).dot(s)*s + edge_point1 
+                f_max = normalize(np.cross(edge_point1 - vertex, s))
+                r_f = np.linalg.norm(vertex - vertex_projected_on_edge)
+                cos_push_vertex_edge_angle = push_direction.dot(f_max)
+                g_max = normalize(-np.cross(edge_point1 - com, s))
+                r_g = np.linalg.norm(com - com_projected_on_edge)
+                cos_com_edge_angle = (-up).dot(g_max)
+                vertex_projected_on_edge = (vertex - edge_point1).dot(s) + edge_point1
+                
+                required_force = mass * 9.8 * cos_com_edge_angle * r_g / (cos_push_vertex_edge_angle * r_f + 1e-5)
+                if required_force < 0:
+                    continue
+                f_x = required_force * push_direction[0]
+                f_y = required_force * push_direction[1]
+                f_z = required_force * push_direction[2]
                     
-                    required_force = mass * 9.8 * cos_com_edge_angle * r_g / (cos_push_vertex_edge_angle * r_f + 1e-5)
-                    if required_force < 0:
-                        continue
-                    f_x = required_force * push_direction[0]
-                    f_y = required_force * push_direction[1]
-                    f_z = required_force * push_direction[2]
-                    
-                    # finding if required toppling force can be resisted by friction
-                    r = vertex - com_projected_on_edge
-                    r[2] = 0
-                    max_z_torque_dir = normalize(np.cross(-r, up))
-                    cos_push_vertex_z_angle = push_direction.dot(max_z_torque_dir)
-                    r = np.linalg.norm(r)
-                    induced_torque = required_force * cos_push_vertex_z_angle * r
-                    #induced_torque = required_force * np.linalg.norm(np.cross(r, push_direction))
-                    # max torque increase due to the finger pressing down on the object
-                    #finger_friction_moment = (f_z / np.sum(pressure_mask)) * pressure_mask.astype(int).dot(offsets_relative_to_com) 
-                    downward_force_dist = np.array([f_z / float(num_approx)] * num_approx)
-                    finger_friction_moment = self.ground_friction_coeff * downward_force_dist.dot(np.abs(offsets_relative_to_com))
+                # finding if required toppling force can be resisted by friction
+                r = vertex - com_projected_on_edge
+                r[2] = 0
+                max_z_torque_dir = normalize(np.cross(-r, up))
+                cos_push_vertex_z_angle = push_direction.dot(max_z_torque_dir)
+                r = np.linalg.norm(r)
+                induced_torque = required_force * cos_push_vertex_z_angle * r
+                #induced_torque = required_force * np.linalg.norm(np.cross(r, push_direction))
+                # max torque increase due to the finger pressing down on the object
+                #finger_friction_moment = (f_z / np.sum(pressure_mask)) * pressure_mask.astype(int).dot(offsets_relative_to_com) 
+                downward_force_dist = np.array([f_z / float(num_approx)] * num_approx)
+                finger_friction_moment = self.ground_friction_coeff * downward_force_dist.dot(np.abs(offsets_relative_to_com))
 
-                    # Finding if finger slips on object
-                    parallel_component = push_direction.dot(-normal)
-                    perpend_component = np.linalg.norm(push_direction + normal*parallel_component)
-                    
-                    if (
-                        (f_x / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
-                        (f_y / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
-                        (induced_torque / (noise * max_moment + finger_friction_moment))**2 < 1
-                    ) and (
-                        parallel_component / (perpend_component + 1e-5) > noise * self.ground_friction_coeff
-                    ):
-                        successes += 1
-                    required_force_sum += required_force
-                probabilities.append(float(successes) / n_trials)
-                required_forces.append(float(required_force_sum) / n_trials)
-            
+                # Finding if finger slips on object
+                parallel_component = push_direction.dot(-normal)
+                perpend_component = np.linalg.norm(push_direction + normal*parallel_component)
+                
+                if (
+                    (f_x / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
+                    (f_y / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
+                    (induced_torque / (noise * max_moment + finger_friction_moment))**2 < 1
+                ) and (
+                    parallel_component / (perpend_component + 1e-5) > noise * self.ground_friction_coeff
+                ):
+                    successes.append(True)
+                else:
+                    successes.append(False)
+                required_forces.append(required_force)
+                
+            probabilities = np.mean(np.array(successes).reshape((-1,num_trials)), axis=1)
             return vertices, normals, np.array(probabilities), np.array(required_forces)
 
         # potential problems: edge points, object not rotated when finding planes
@@ -226,18 +225,11 @@ class TopplingPolicy(MultiEnvPolicy):
         up = np.array([0,0,1])
         num_approx = 30
         max_push_angle = np.pi/2
-        #mass = obj.mass
         mass = 1
        
         # Finding toppling edge
         z_components = np.around(mesh.vertices[:,2], 3)
-        a = np.argsort(z_components)
-        b = [z_components[a[i]] for i in range(20)]
-        logging.info(('z comp', b))
         lowest_z = np.min(z_components)
-        #thresh = .1
-        #thresh = (1-thresh) * lowest_z + thresh * np.max(z_components)
-        #bottom_points = mesh.vertices[z_components < thresh][:,:2]
         bottom_points = mesh.vertices[z_components == lowest_z][:,:2]
         bottom_points = bottom_points[ConvexHull(bottom_points).vertices]
         centered_bottom_points = bottom_points - com[:2]
@@ -245,14 +237,9 @@ class TopplingPolicy(MultiEnvPolicy):
         angles = angles - np.roll(angles,1) # angles of point - angles of next point
         angles = (angles + 2*np.pi) % (2*np.pi) # handling the fact that some angles are negative
         largest_diff_index = np.argmax(angles)
-        edge_point2 = np.append(bottom_points[largest_diff_index], [lowest_z]) #making point 3d again, except projected onto the bottom plane
         next_idx = (largest_diff_index - 1) % len(bottom_points)
+        edge_point2 = np.append(bottom_points[largest_diff_index], [lowest_z]) #making point 3d again, except projected onto the bottom plane
         edge_point1 = np.append(bottom_points[next_idx], [lowest_z])
-        #bottom_point_dirs = bottom_points - com[:2]
-        #bottom_point_dirs = bottom_point_dirs / np.linalg.norm(bottom_point_dirs, axis=1).reshape((-1,1))
-        #furthest_indices = np.argsort(bottom_point_dirs.dot(push_direction[:2]))
-        #edge_point1 = np.append(bottom_points[furthest_indices[-1]], [lowest_z])
-        #edge_point2 = np.append(bottom_points[furthest_indices[-2]], [lowest_z])
 
         vertices, normals, probabilities, required_forces = predict_topple(edge_point1, edge_point2)
         max_prob = np.max(probabilities)
@@ -261,22 +248,6 @@ class TopplingPolicy(MultiEnvPolicy):
         vertex = vertices[probabilities == max_prob][min_force_idx]
         normal = normals[probabilities == max_prob][min_force_idx]
 
-#        # Check if it topples on the edges next to it
-#        right_idx = (largest_diff_index - 2) % len(bottom_points)
-#        right_edge_point = np.append(bottom_points[right_idx], [lowest_z])
-#        left_idx = (largest_diff_index + 1) % len(bottom_points)
-#        left_edge_point = np.append(bottom_points[left_idx], [lowest_z])
-#        _, _, probs_left, required_forces_left = predict_topple(edge_point2, left_edge_point, use_sensitivity=False, vertices=np.array([vertex]), normals=np.array([normal]))
-#        _, _, probs_right, required_forces_right = predict_topple(right_edge_point, edge_point1, use_sensitivity=False, vertices=np.array([vertex]), normals=np.array([normal]))
-#        logging.info(('left, right', probs_left, probs_right, required_forces_left, required_forces_right, required_force))
-
-
-        # vertices = np.array([vertex, edge_point1, edge_point2, left_edge_point, right_edge_point])
-        # probabilities = np.array([max_prob, 0, 0, 0.5, 0.5])
-        # vertices = np.array([edge_point1, edge_point2])
-        # probabilities = np.array([0,0])
-
-        #return obj.T_obj_world, [np.array(not_topple), np.array(topple), np.array([edge_point1, edge_point2])], [], obj.T_obj_world, push_direction
         return obj.T_obj_world, vertices, probabilities, np.array([edge_point1, edge_point2]), obj.T_obj_world, push_direction
 
     def will_topple_new(self, obj, push_vertex, push_direction):

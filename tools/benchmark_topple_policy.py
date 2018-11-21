@@ -41,7 +41,7 @@ import math
 
 from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 import autolab_core.utils as utils
-from perception import RenderMode
+# from perception import RenderMode
 
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv
