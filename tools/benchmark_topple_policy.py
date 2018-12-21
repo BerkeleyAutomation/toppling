@@ -307,15 +307,37 @@ def benchmark_bin_picking_policy(policy,
                                 # color = np.array([0,0,1])
                                 vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
 
-                            for vertex in action['edge_points']:
-                                color = np.array([0,0,1])
-                                vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+                            # for vertex in action['edge_points']:
+                            #     color = np.array([0,0,1])
+                            #     vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+
+                            # color = np.array([0,0,1])
+                            # vertex = np.array([0.01861381,0.02896758,0.02431894])
+                            # normal = vertex + .01* np.array([ 0.26230235,-0.9313452, -0.25257393])
+                            # vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+                            # vis3d.points(Point(normal, 'world'), scale=.0005, color=color) 
+
                             #set_of_lines = action['set_of_lines']
                             #for i, line in enumerate(set_of_lines):
                             #    color = str(bin(i+1))[2:].zfill(3)
                             #    color = np.array([color[2], color[1], color[0]])
                             #    vis3d.plot3d(line, color=color)
                         vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+                        color=np.array([0,0,1])
+                        original_pose = state.obj.T_obj_world
+                        for pose, edge_point1, edge_point2 in zip(action['final_poses'], action['bottom_points'], np.roll(action['bottom_points'],1,axis=0)):
+                            vis3d.figure()
+                            state.obj.T_obj_world = original_pose
+                            bin_picking_env.render_3d_scene()
+                            vis3d.points(Point(edge_point1, 'world'), scale=.0005, color=color)
+                            vis3d.points(Point(edge_point2, 'world'), scale=.0005, color=color)
+                            vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+                            vis3d.figure()
+                            state.obj.T_obj_world = pose
+                            bin_picking_env.render_3d_scene()
+                            vis3d.show(starting_camera_pose=CAMERA_POSE)
                         # vis3d.save('/home/mjd3/Pictures/weird_pics/%d_%d_before.png' % (heap_id, bin_picking_env.timestep), starting_camera_pose=CAMERA_POSE)
                     # store datapoint pre-step data
                     j = 0
@@ -506,7 +528,7 @@ def run_sequential_bin_picking_benchmark(
         config['num_rollouts'] = num_rollouts
 
     # load policy
-    policy = TopplingPolicy()
+    policy = TopplingPolicy(config['policy']['grasping_policy_config_filename'])
 
     # perform rollouts
     logging.info('Rolling out policy')

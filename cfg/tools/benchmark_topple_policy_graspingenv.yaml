@@ -9,16 +9,17 @@ policy:
   # type: greedy_composite
   type: toppling
   # type: singulation_policy_full_rollout_composite     # Set steps_per_test_case: 15
-  params:
+  grasping_policy_config_filename: ../dex-net/cfg/tools/policies/dexnet_greedy_parallel_jaw.yaml
+#  params:
 
-    subpolicies:
-      - cfg/tools/policies/dexnet_greedy_parallel_jaw.yaml
-      - cfg/tools/policies/dexnet_greedy_suction.yaml
-      # - cfg/tools/policies/dexnet_threshold_parallel_jaw.yaml
-      # - cfg/tools/policies/dexnet_threshold_suction.yaml
-      - cfg/tools/policies/pushing.yaml
-    failed_grasps_before_singulation: 2
-    log_first_q_value: 0
+#    subpolicies:
+#      - cfg/tools/policies/dexnet_greedy_parallel_jaw.yaml
+#      - cfg/tools/policies/dexnet_greedy_suction.yaml
+#      # - cfg/tools/policies/dexnet_threshold_parallel_jaw.yaml
+#      # - cfg/tools/policies/dexnet_threshold_suction.yaml
+#      - cfg/tools/policies/pushing.yaml
+#    failed_grasps_before_singulation: 2
+#    log_first_q_value: 0
 
 # ray params
 ray:
@@ -346,8 +347,8 @@ state_space:
     object_keys:
       #thingiverse: all
       # thingiverse-packaged: all
-      # kit: all
-      3dnet: all
+      kit: all
+      # 3dnet: all
       #big-kit: all
       #big-3dnet: all
 
