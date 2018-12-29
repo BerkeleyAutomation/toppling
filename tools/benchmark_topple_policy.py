@@ -68,6 +68,7 @@ s = np.sin(theta)
 #                       [s,c,0],
 #                       [0,0,1]]).dot(CAMERA_ROT)
 CAMERA_TRANS = np.array([-.25,-.25,.35])
+CAMERA_TRANS = np.array([0,0,.25])
 CAMERA_POSE = RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
 
 def benchmark_bin_picking_policy(policy,
@@ -284,33 +285,32 @@ def benchmark_bin_picking_policy(policy,
                             vis3d.gripper(gripper, action.grasp(gripper))
                         #if isinstance(action, LinearPushAction):
                         else:
-                            # T_start_world = action.T_begin_world * gripper.T_mesh_grasp
-                            # T_end_world = action.T_end_world * gripper.T_mesh_grasp
-                            #start_point = action.T_begin_world.translation
-                            start_point = action['start']
-                            #end_point = action.T_end_world.translation
-                            end_point = action['end']
-                            vec = (end_point - start_point) / np.linalg.norm(end_point-start_point) if np.linalg.norm(end_point-start_point) > 0 else end_point-start_point 
-                            #h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(vec)
-                            #h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(vec)
-                            arrow_len = np.linalg.norm(start_point - end_point)
-                            h1 = (end_point - start_point + np.array([0,0,arrow_len])) / (arrow_len*math.sqrt(2))
-                            h2 = (end_point - start_point - np.array([0,0,arrow_len])) / (arrow_len*math.sqrt(2))
-                            shaft_points = [start_point, end_point]
-                            head_points = [end_point - 0.03*h2, end_point, end_point - 0.03*h1]
-                            #vis3d.plot3d(shaft_points, color=[0,0,1])
-                            #vis3d.plot3d(head_points, color=[0,0,1])
+                            # # T_start_world = action.T_begin_world * gripper.T_mesh_grasp
+                            # # T_end_world = action.T_end_world * gripper.T_mesh_grasp
+                            # #start_point = action.T_begin_world.translation
+                            # start_point = action['start']
+                            # #end_point = action.T_end_world.translation
+                            # end_point = action['end']
+                            # vec = (end_point - start_point) / np.linalg.norm(end_point-start_point) if np.linalg.norm(end_point-start_point) > 0 else end_point-start_point 
+                            # #h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(vec)
+                            # #h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(vec)
+                            # arrow_len = np.linalg.norm(start_point - end_point)
+                            # h1 = (end_point - start_point + np.array([0,0,arrow_len])) / (arrow_len*math.sqrt(2))
+                            # h2 = (end_point - start_point - np.array([0,0,arrow_len])) / (arrow_len*math.sqrt(2))
+                            # shaft_points = [start_point, end_point]
+                            # head_points = [end_point - 0.03*h2, end_point, end_point - 0.03*h1]
+                            # #vis3d.plot3d(shaft_points, color=[0,0,1])
+                            # #vis3d.plot3d(head_points, color=[0,0,1])
                             
                             # Displaying all potential topple points
                             for vertex, prob in zip(action['vertices'], action['probabilities']):
                                 color = np.array([min(1, 2*(1-prob)), min(2*prob, 1), 0])
-                                # color = np.array([0,0,1])
                                 vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
 
-                            # for vertex in action['edge_points']:
-                            #     color = np.array([0,0,1])
-                            #     vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
-
+                            for vertex in action['bottom_points']:
+                                color = np.array([0,0,1])
+                                vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+                            vis3d.points(Point(action['com'], 'world'), scale=.005, color=np.array([0,0,1]))
                             # color = np.array([0,0,1])
                             # vertex = np.array([0.01861381,0.02896758,0.02431894])
                             # normal = vertex + .01* np.array([ 0.26230235,-0.9313452, -0.25257393])

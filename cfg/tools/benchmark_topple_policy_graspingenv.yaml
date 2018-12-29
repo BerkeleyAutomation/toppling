@@ -1,7 +1,7 @@
 # general params
 steps_per_test_case: 2
 rollouts_per_garbage_collect: 10
-debug: 0 
+debug: 1 
 
 # policy params
 fully_observed: 1
@@ -333,6 +333,7 @@ state_space:
 
   replace: 0
   samples_per_object: 3
+  use_box: 0 # pose 2
 
   pile:
     min:
@@ -345,12 +346,18 @@ state_space:
   object:
     database_path: /nfs/diskstation/db/dexnet_4.hdf5
     object_keys:
-      #thingiverse: all
+      # thingiverse: all
       # thingiverse-packaged: all
-      kit: all
+      kit:
+        - CatSitting_800_tex # pose 0, edge 5
       # 3dnet: all
-      #big-kit: all
-      #big-3dnet: all
+      # big-kit: all
+      # big-3dnet: all
+    #database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
+    #object_keys:
+    #  mini_dexnet:
+    #    #- pawn
+    #    - vase # pose 1
 
     planar_translation:  
       min:
@@ -404,6 +411,9 @@ state_space:
         min: 0.0
         max: 1.0
       smooth: 0
+    stp_com_sigma: .0025
+    stp_num_samples: 10
+    stp_min_prob: .01
 
   camera:
     frame: phoxi_overhead
