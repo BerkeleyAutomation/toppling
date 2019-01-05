@@ -2,11 +2,41 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import math
 from copy import deepcopy
+from time import time
 
 from autolab_core import RigidTransform
+from dexnet.core import StablePose
 
 def normalize(vec, axis=None):
+    """
+    Returns a normalied version of the passed in array
+
+    Parameters
+    ----------
+    vec : nx3, :obj:`numpy.ndarray` or 3xn :obj:`numpy.ndarray`
+    axis : int
+        if vec is nx3, axis describes which axis to normalize over
+
+    Returns
+    -------
+    :obj:`numpy.ndarray` of shape vec
+        normalized version of vec
+    """
     return vec / np.linalg.norm(vec) if axis == None else vec / np.linalg.norm(vec, axis=axis).reshape((-1,1))
+
+def stable_pose(R):
+    """
+    Returns a stable pose object from RigidTransform
+
+    Parameters
+    ----------
+    R : :obj:`RigidTransform`
+
+    Returns
+    -------
+    :obj:`StablePose`
+    """
+    return StablePose(0, R0, R.matrix, eq_thresh=.02, to_frame='world') 
 
 class TopplingModel():
     def __init__(self, obj):
@@ -36,6 +66,8 @@ class TopplingModel():
         """
         self.obj = obj
         self.mesh = deepcopy(obj.mesh).apply_transform(obj.T_obj_world.matrix)
+        #if obj.key == 'mini_dexnet~vase':
+        #    self.mesh.center_mass[2] += .06
         self.com = self.mesh.center_mass
         self.mass = 1
        
@@ -48,8 +80,9 @@ class TopplingModel():
         # bottom_points = self.mesh.vertices[z_components < self.thresh][:,:2]
         bottom_points = bottom_points[ConvexHull(bottom_points).vertices]
         self.bottom_points = np.append(
-            bottom_points, 
-            lowest_z * np.ones(len(bottom_points)).reshape((-1,1)), #ensure all points lie on plane 
+            bottom_points,
+            #ensure all points lie on plane
+            lowest_z * np.ones(len(bottom_points)).reshape((-1,1)), 
             axis=1
         )
         # Turn bottom points into pairs of adjacent bottom_points
@@ -58,7 +91,8 @@ class TopplingModel():
         #self.edge_points = [self.edge_points[edge]]
         #self.bottom_points = self.bottom_points[[edge,edge+1]]
 
-        # For each edge, calculate the maximum moment and maximum tangential force it can resist
+        # For each edge, calculate the maximum moment
+        # and maximum tangential force it can resist
         self.max_moments, self.max_tangential_forces, self.com_projected_on_edges = [], [], []
         for edge_point1, edge_point2 in self.edge_points:
             s = normalize(edge_point2 - edge_point1)
@@ -123,14 +157,19 @@ class TopplingModel():
 
         r_g = com_projected_on_edge - self.com
         tau_g = np.cross(r_g, self.mass * 9.8 * -up)
-        #print 'vertex', vertex
-        #print 's', s
-        #print 'a', r_f, p_f
-        #print 'push', push_direction, push_projected
-        #print 'tau', tau_g, tau_f, tau_g/tau_f
+        # since the two torque vectors are aligned, the ratio of tau_g / tau_f
+        # should be the same regardless so we just take the the x value
         return -(tau_g / (tau_f + 1e-7))[0]
 
-    def induced_torque(self, vertex, push_direction, edge_point1, edge_point2, com_projected_on_edge, required_force):
+    def induced_torque(
+        self,
+        vertex,
+        push_direction, 
+        edge_point1, 
+        edge_point2, 
+        com_projected_on_edge, 
+        required_force
+    ):
         """
         how much torque around the z axis (centered around com_projected_on_edge) 
         does the pushing action exert on the object
@@ -167,7 +206,8 @@ class TopplingModel():
         Parameters
         ----------
         f_z : float
-            how much the finger would press in the downward direction in order to topple the object
+            how much the finger would press in the downward direction
+            in order to topple the object
         edge_point1 : 3x1 :obj:`numpy.ndarray`
         edge_point2 : 3x1 :obj:`numpy.ndarray`
 
@@ -214,7 +254,8 @@ class TopplingModel():
         #vertices, _, face_ind = mesh.ray.intersects_location(ray_origins, -normals, multiple_hits=False)
         for i in range(len(vertices)):
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .01 * normals[i]
-            intersect, _, face_ind = self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
+            intersect, _, face_ind = 
+                self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
             # print 'tmp', intersect, face_ind
             if len(face_ind) == 0:
                 vertices[i] = np.array([0,0,0])
@@ -225,7 +266,7 @@ class TopplingModel():
         friction_noises = 1 + np.random.normal(scale=.1, size=len(vertices)) / self.ground_friction_coeff
         return vertices, normals, push_directions, friction_noises
 
-    def map_edge_to_pose(self):
+    def map_edge_to_pose(self, edges):
         """
         returns a list of poses that the object would end up in if toppled along each edge
 
@@ -233,27 +274,73 @@ class TopplingModel():
         -------
         :obj:`list` of :obj:`RigidTransform`
         """
-        current_pose = self.obj.T_obj_world.matrix
-        # current_quality = self.grasping_policy.action(obj).q_value
+        up = np.array([0,0,1])
+        current_pose = stable_pose(self.obj.T_obj_world)
         final_poses = []
-        for edge_point1, edge_point2 in self.edge_points:
-            v = self.com - edge_point1
+        for edge in edges:
+            edge_point1, edge_point2 = self.edge_points[edge]
+            com_projected_on_edge = self.com_projected_on_edges[edge]
             s = normalize(edge_point2 - edge_point1)
-            com_projected_on_edge = v.dot(s) * s + edge_point1
             
             x = normalize(com_projected_on_edge - self.com)
-            y = -s
-            topple_angle = math.acos(np.dot(x, np.array([0,0,-1]))) + 1e-2
+            y = -normalize(np.cross(x, up))
+            topple_angle = math.acos(np.dot(x, -up)) + .01
             R_initial = RigidTransform.rotation_from_axis_and_origin(y, edge_point1, topple_angle).dot(self.obj.T_obj_world)
-            
-            initial_rotated_mesh = deepcopy(self.mesh).apply_transform(R_initial.matrix) # before the object settles
+
+            # before the object settles
+            initial_rotated_mesh = deepcopy(self.mesh).apply_transform(R_initial.matrix)
             lowest_z = np.min(initial_rotated_mesh.vertices[:,2])
-            if lowest_z >= edge_point1[2]: # object would topple
-                resting_pose = self.obj.obj.resting_pose(R_initial)
+            #if lowest_z >= edge_point1[2]: # object would topple
+            if True:
+                resting_pose = stable_pose(self.obj.obj.resting_pose(R_initial))
                 final_poses.append(resting_pose)
-            else: # object would rotate back onto original stable pose (assuming finger doesn't keep pushing)
-                final_poses.append(self.obj.T_obj_world)
+                #final_poses.append(stable_pose(R_initial))
+            else:
+                # object would rotate back onto original stable pose
+                # (assuming finger doesn't keep pushing)
+                final_poses.append(current_pose)
         return final_poses
+
+    def combine_equivalent_poses(self, final_poses, vertex_probs):
+        """
+        Combines the probabilities of poses which are equivalent
+        except for rotations along the z axis or translations
+
+        Parameters
+        ----------
+        final_poses : :obj:`list` of :obj:`StablePose`
+            list of poses the object ends up in after being toppled over each edge of size m
+        vertex_probs : nxm :obj:`numpy.ndarray`
+            probability of object landing in each of the m poses for each of the n topple actions
+
+        Returns
+        -------
+        :obj:`list` of :obj:`StablePose` of size o
+            list of unique Stable Poses
+        nxo :obj:`numpy.ndarray`
+            probability of object landing in each of the o unique stable poses
+            for each of the n topple actions
+        """
+        i = 0
+        edge_inds = list(np.arange(vertex_probs.shape[1]))
+        grouped_poses = []
+        grouped_edges = []
+        while i < len(edge_inds):
+            equivalent_edges = [edge_inds[i]]
+            curr_edge_ind = edge_inds[i]
+            j = i+1
+            while j < len(edge_inds):
+                if self.final_poses[curr_edge_ind] == self.final_poses[edge_inds[j]]:
+                    equivalent_edges.append(edge_inds[j])
+                    edge_inds.pop(j)
+                else:
+                    j += 1
+            grouped_poses.append(self.final_poses[curr_edge_ind])
+            grouped_edges.append(equivalent_edges)
+            i += 1
+        vertex_probs = 
+            np.hstack([np.sum(vertex_probs[:,edges], axis=1).reshape(-1,1) for edges in grouped_edges])
+        return grouped_poses, vertex_probs
         
     def predict(self, vertices, normals, push_directions, use_sensitivity=True):
         """
@@ -264,17 +351,29 @@ class TopplingModel():
         vertices : nx3 :obj:`numpy.ndarray`
         push_directions : nx3 :obj:`numpy.ndarray`
         use_sensitivity : bool
+        
+        Returns
+        -------
+        :obj:`list` of :obj:`RigidTransform`
+        :obj:`list` of float
         """
         up = np.array([0,0,1])
         n_trials = 1
         if use_sensitivity:
             n_trials = self.n_trials
-            vertices, normals, push_directions, friction_noises = self.add_noise(vertices, normals, push_directions, n_trials)
+            vertices, normals, push_directions, friction_noises = self.add_noise(
+                vertices, 
+                normals, 
+                push_directions, 
+                n_trials
+            )
                     
         # Check whether each push point topples or not
         vertex_probs = [] # probability of toppling over each edge
-        current_vertex_counts = np.zeros(len(self.edge_points)) # number of predicted times it will topple for the current vertex
+        # number of predicted times it will topple for the current vertex
+        current_vertex_counts = np.zeros(len(self.edge_points))
         i = 0
+        a = time()
         while i < len(vertices):
             vertex = vertices[i]
             normal = normals[i]
@@ -305,26 +404,38 @@ class TopplingModel():
                     self.max_moments, 
                     self.max_tangential_forces
                 ):
+                    # Finding if finger slips on object (Condition 1)
+                    parallel_component = push_direction.dot(-normal)
+                    perpend_component = np.linalg.norm(push_direction + normal*parallel_component)
+                    if parallel_component / (perpend_component + 1e-5) <= noise * self.ground_friction_coeff:
+                        continue
+
                     # finding required force to topple
-                    required_force = self.required_force(vertex, push_direction, edge_point1, edge_point2, com_projected_on_edge)
+                    required_force = self.required_force(
+                        vertex, 
+                        push_direction, 
+                        edge_point1, 
+                        edge_point2, 
+                        com_projected_on_edge
+                    )
                     if required_force < 0 or required_force >= min_required_force:
                         continue
                     f_x, f_y, f_z = required_force * push_direction
                         
-                    induced_torque = self.induced_torque(vertex, push_direction, edge_point1, edge_point2, com_projected_on_edge, required_force)
+                    induced_torque = self.induced_torque(
+                        vertex, 
+                        push_direction, 
+                        edge_point1, 
+                        edge_point2, 
+                        com_projected_on_edge, 
+                        required_force
+                    )
                     finger_friction_moment = self.finger_friction_moment(f_z, edge_point1, edge_point2)
 
-                    # Finding if finger slips on object
-                    parallel_component = push_direction.dot(-normal)
-                    perpend_component = np.linalg.norm(push_direction + normal*parallel_component)
-                    
-                    # Conditions for Toppling!
                     if ( # Condition 2
                         (f_x / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
                         (f_y / (noise * max_tangential_force + self.ground_friction_coeff * f_z))**2 + 
                         (induced_torque / (noise * max_moment + finger_friction_moment))**2 < 1
-                    ) and ( # Condition 3
-                        parallel_component / (perpend_component + 1e-5) > noise * self.ground_friction_coeff
                     ):
                         min_required_force = required_force
                         topple_edge = curr_edge
@@ -338,5 +449,20 @@ class TopplingModel():
                 vertex_probs.append(current_vertex_counts / n_trials)
                 current_vertex_counts = np.zeros(len(self.edge_points))
         vertex_probs = np.array(vertex_probs)
-        probabilities = np.sum(vertex_probs, axis=1)
-        return probabilities
+        print 'probability time', time() - a
+
+        # Only calculate the final pose for edges that are actually toppled over
+        a = time()
+        non_zero_edges = np.arange(len(self.edge_points))[np.sum(vertex_probs, axis=0) != 0]
+        vertex_probs = vertex_probs[:,non_zero_edges]
+        self.final_poses = self.map_edge_to_pose(non_zero_edges)
+        print 'pose time', time() - a
+
+        # adding the probability of not toppling
+        not_topple_prob = 1 - np.sum(vertex_probs, axis=1, keepdims=True)
+        vertex_probs = np.hstack([not_topple_prob, vertex_probs])
+        self.final_poses.insert(0, stable_pose(self.obj.T_obj_world))
+        
+        grouped_poses, vertex_probs = self.combine_equivalent_poses(self.final_poses, vertex_probs)
+        return grouped_poses, vertex_probs
+        

@@ -6,18 +6,9 @@ debug: 1
 # policy params
 fully_observed: 1
 policy:
-  # type: greedy_composite
   type: toppling
-  # type: singulation_policy_full_rollout_composite     # Set steps_per_test_case: 15
-  grasping_policy_config_filename: ../dex-net/cfg/tools/policies/dexnet_greedy_parallel_jaw.yaml
-#  params:
-
-#    subpolicies:
-#      - cfg/tools/policies/dexnet_greedy_parallel_jaw.yaml
-#      - cfg/tools/policies/dexnet_greedy_suction.yaml
-#      # - cfg/tools/policies/dexnet_threshold_parallel_jaw.yaml
-#      # - cfg/tools/policies/dexnet_threshold_suction.yaml
-#      - cfg/tools/policies/pushing.yaml
+  grasping_policy_config_filename: cfg/tools/dexnet_greedy_parallel_jaw.yaml
+  params:
 #    failed_grasps_before_singulation: 2
 #    log_first_q_value: 0
 
@@ -344,20 +335,20 @@ state_space:
       - 0.15
 
   object:
-    database_path: /nfs/diskstation/db/dexnet_4.hdf5
-    object_keys:
-      # thingiverse: all
-      # thingiverse-packaged: all
-      kit:
-        - CatSitting_800_tex # pose 0, edge 5
-      # 3dnet: all
-      # big-kit: all
-      # big-3dnet: all
-    #database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
+    #database_path: /nfs/diskstation/db/dexnet_4.hdf5
     #object_keys:
-    #  mini_dexnet:
-    #    #- pawn
-    #    - vase # pose 1
+    #  # thingiverse: all
+    #  # thingiverse-packaged: all
+    #  kit:
+    #    - CatSitting_800_tex # pose 0, edge 5
+    #  # 3dnet: all
+    #  # big-kit: all
+    #  # big-3dnet: all
+    database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
+    object_keys:
+      mini_dexnet:
+        #- pawn # pose 0
+        - vase # pose 1
 
     planar_translation:  
       min:

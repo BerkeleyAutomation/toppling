@@ -1,0 +1,37 @@
+policy:
+  type: dexnet_greedy
+  fully_observed: 1
+
+  database:
+    database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    object_keys:
+      3dnet: all
+      big_3dnet: all
+      kit: all
+      big_kit: all
+      mini_dexnet: all
+
+  params:
+    check_collisions: 1
+    check_object_interactions: 0
+    external_contact_friction_coef: 1.0
+    external_contact_wrench_norm_thresh: 0.1
+    max_blocking_force_angle: 45 # in degrees
+
+    reference_frame: world
+
+    sample_contact_area: 1
+    constrain_finger_surface: 1
+    obj_collision_num_samples: 10
+
+    gripper: yumi_metal_spline
+    metric_name: robust_wrench_resistance
+
+    axis_angle:
+      min: -20
+      max: 20
+
+    approach_angle:
+      min: -10
+      max: 10
+      num: 3

@@ -68,7 +68,7 @@ s = np.sin(theta)
 #                       [s,c,0],
 #                       [0,0,1]]).dot(CAMERA_ROT)
 CAMERA_TRANS = np.array([-.25,-.25,.35])
-CAMERA_TRANS = np.array([0,0,.25])
+CAMERA_TRANS = np.array([-.4,0,.3])
 CAMERA_POSE = RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
 
 def benchmark_bin_picking_policy(policy,
@@ -247,7 +247,7 @@ def benchmark_bin_picking_policy(policy,
                     vis3d.figure()
                     bin_picking_env.render_3d_scene()
                     vis3d.pose(environment.robot.T_robot_world)
-                    vis3d.show(animate=True)
+                    vis3d.show(starting_camera_pose=CAMERA_POSE)
             
                 # observe
                 if vis_config['initial_obs']:
@@ -326,7 +326,11 @@ def benchmark_bin_picking_policy(policy,
 
                         color=np.array([0,0,1])
                         original_pose = state.obj.T_obj_world
-                        for pose, edge_point1, edge_point2 in zip(action['final_poses'], action['bottom_points'], np.roll(action['bottom_points'],1,axis=0)):
+                        pose_num = 0
+                        for pose, edge_point1, edge_point2 in zip(action['final_poses'], action['bottom_points'], np.roll(action['bottom_points'],-1,axis=0)):
+                            print 'Pose:', pose_num
+                            pose_num += 1
+                            pose = pose.T_obj_table
                             vis3d.figure()
                             state.obj.T_obj_world = original_pose
                             bin_picking_env.render_3d_scene()
@@ -337,8 +341,10 @@ def benchmark_bin_picking_policy(policy,
                             vis3d.figure()
                             state.obj.T_obj_world = pose
                             bin_picking_env.render_3d_scene()
+                            vis3d.points(Point(edge_point1, 'world'), scale=.0005, color=color)
+                            vis3d.points(Point(edge_point2, 'world'), scale=.0005, color=color)
                             vis3d.show(starting_camera_pose=CAMERA_POSE)
-                        # vis3d.save('/home/mjd3/Pictures/weird_pics/%d_%d_before.png' % (heap_id, bin_picking_env.timestep), starting_camera_pose=CAMERA_POSE)
+                         #vis3d.save('/home/mjd3/Pictures/weird_pics/%d_%d_before.png' % (heap_id, bin_picking_env.timestep), starting_camera_pose=CAMERA_POSE)
                     # store datapoint pre-step data
                     j = 0
                     obj_poses = np.zeros(fields_config['obj_poses']['height'])
