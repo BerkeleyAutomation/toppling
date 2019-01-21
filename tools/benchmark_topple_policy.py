@@ -311,18 +311,25 @@ def benchmark_bin_picking_policy(policy,
                                 color = np.array([0,0,1])
                                 vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
                             vis3d.points(Point(action['com'], 'world'), scale=.005, color=np.array([0,0,1]))
-                            # color = np.array([0,0,1])
-                            # vertex = np.array([0.01861381,0.02896758,0.02431894])
-                            # normal = vertex + .01* np.array([ 0.26230235,-0.9313452, -0.25257393])
-                            # vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
-                            # vis3d.points(Point(normal, 'world'), scale=.0005, color=color) 
-
+                            vis3d.points(Point(np.array([0,0,0]), 'world'), scale=.005, color=np.array([0,1,0]))
+                            
                             #set_of_lines = action['set_of_lines']
                             #for i, line in enumerate(set_of_lines):
                             #    color = str(bin(i+1))[2:].zfill(3)
                             #    color = np.array([color[2], color[1], color[0]])
                             #    vis3d.plot3d(line, color=color)
                         vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+                        # Show 
+                        vis3d.figure()
+                        bin_picking_env.render_3d_scene()
+                        final_pose_ind = action['final_pose_ind'] / np.amax(action['final_pose_ind'])
+                        for vertex, final_pose_ind in zip(action['vertices'], final_pose_ind):
+                            color = np.array([0, min(1, 2*(1-prob)), min(2*prob, 1)])
+                            vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+                        vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+
 
                         color=np.array([0,0,1])
                         original_pose = state.obj.T_obj_world

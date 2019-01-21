@@ -340,15 +340,15 @@ state_space:
     #  # thingiverse: all
     #  # thingiverse-packaged: all
     #  kit:
-    #    - CatSitting_800_tex # pose 0, edge 5
+    #    - CatSitting_800_tex # pose 0
     #  # 3dnet: all
     #  # big-kit: all
     #  # big-3dnet: all
     database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
     object_keys:
       mini_dexnet:
-        #- pawn # pose 0
-        - vase # pose 1
+        - pawn # pose 0
+        #- vase # pose 1
 
     planar_translation:  
       min:
