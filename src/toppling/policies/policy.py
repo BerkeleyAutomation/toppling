@@ -2,6 +2,7 @@ import numpy as np
 from copy import deepcopy
 import logging
 import sys
+from time import time
 
 from trimesh import sample 
 from dexnet.envs import MultiEnvPolicy, DexNetGreedyGraspingPolicy, LinearPushAction
@@ -10,12 +11,13 @@ from toppling.models import TopplingModel
 from toppling import normalize, up
 
 class TopplingPolicy(MultiEnvPolicy):
-    def __init__(self, grasping_policy_config_filename):
+    def __init__(self, grasping_policy_config_filename, use_sensitivity=True):
         MultiEnvPolicy.__init__(self)
         grasping_config = YamlConfig(grasping_policy_config_filename)
         database_config = grasping_config['policy']['database']
         params_config = grasping_config['policy']['params']
         self.grasping_policy = DexNetGreedyGraspingPolicy(database_config, params_config)
+        self.use_sensitivity = use_sensitivity
     
     def set_environment(self, environment):
         MultiEnvPolicy.set_environment(self, environment)
@@ -79,13 +81,20 @@ class TopplingPolicy(MultiEnvPolicy):
         push_directions = -deepcopy(normals)
         
         toppling_model = TopplingModel(state)
-        poses, vertex_probs = toppling_model.predict(vertices, normals, push_directions, use_sensitivity=False)
+        poses, vertex_probs = toppling_model.predict(
+            vertices, 
+            normals, 
+            push_directions, 
+            use_sensitivity=self.use_sensitivity
+        )
 
         T_old = deepcopy(state.obj.T_obj_world)
-        quality_increases = np.array([self.quality(state, pose.T_obj_table) for pose in poses])
+        a = time()
+        qualities = np.array([self.quality(state, pose.T_obj_table) for pose in poses])
+        print 'grasp quality time:', time() - a
         # quality_increases = (quality_increases + 1 - quality_increases[0]) / 2.0
         # quality_increases = np.maximum(quality_increases - quality_increases[0], 0)
-        quality_increases = quality_increases - np.amin(quality_increases)
+        quality_increases = qualities - np.amin(qualities)
         quality_increases = quality_increases / (np.amax(quality_increases) + 1e-5)
         state.obj.T_obj_world = T_old
 
@@ -117,9 +126,12 @@ class TopplingPolicy(MultiEnvPolicy):
             end_pose,
             metadata={
                 'vertices': vertices, 
+                'vertex_probs': vertex_probs,
                 'topple_probs': topple_probs,
                 'quality_increases': quality_increases,
-                'final_poses': toppling_model.final_poses[1:], # remove the first pose which corresponds to "no topple"
+                'qualities': qualities,
+                'current_pose': state.T_obj_world,
+                'final_poses': [stable_pose.T_obj_table for stable_pose in toppling_model.final_poses[1:]], # remove the first pose which corresponds to "no topple"
                 'bottom_points': toppling_model.bottom_points,
                 'com': toppling_model.com,
                 'final_pose_ind': final_pose_ind

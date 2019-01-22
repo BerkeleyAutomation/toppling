@@ -28,6 +28,12 @@ CAMERA_TRANS = np.array([-.25,-.25,.35])
 CAMERA_TRANS = np.array([-.4,0,.3])
 CAMERA_POSE = RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
 
+def display_or_save(filename):
+    if args.save:
+        vis3d.save_loop(filename, starting_camera_pose=CAMERA_POSE)
+    else:
+        vis3d.show(starting_camera_pose=CAMERA_POSE)
+
 if __name__ == '__main__':
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        '..',
@@ -44,13 +50,16 @@ if __name__ == '__main__':
     parser.add_argument('--topple_graph', action='store_false', help=
         """If specified, it will not show the topple graph"""
     )
+    parser.add_argument('--save', action='store_true', help='save to a picture rather than opening a window')
     args = parser.parse_args()
+    print '\n\nSaving to file' if args.save else '\n\nDisplaying in a window'
 
     config = YamlConfig(args.config_filename)
-    policy = TopplingPolicy(config['policy']['grasping_policy_config_filename'])
+    policy = TopplingPolicy(config['policy']['grasping_policy_config_filename'], use_sensitivity=False)
     
     env = GraspingEnv(config, config['vis'])
     env.reset()
+    obj_name = env.state.obj.key
     policy.set_environment(env.environment)
     action = policy.action(env.state)
 
@@ -61,7 +70,7 @@ if __name__ == '__main__':
         for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
             color = np.array([min(1, 2*(1-prob)), min(2*prob, 1), 0])
             vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
-        vis3d.show(starting_camera_pose=CAMERA_POSE)
+        display_or_save('{}_topple_probs.gif'.format(obj_name))
 
     if args.quality_increases:
         vis3d.figure()
@@ -70,7 +79,7 @@ if __name__ == '__main__':
             topples = action.metadata['final_pose_ind'] != 0
             color = np.array([min(1, 2*(1-prob)), min(2*prob, 1), 0]) if topples else np.array([0,0,0])
             vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
-        vis3d.show(starting_camera_pose=CAMERA_POSE)
+        display_or_save('{}_quality_increases.gif'.format(obj_name))
 
     if args.topple_graph:
         vis3d.figure()

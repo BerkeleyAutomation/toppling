@@ -212,7 +212,8 @@ class TopplingModel():
         vertices = np.repeat(vertices, n_trials, axis=0)
         normals = np.repeat(normals, n_trials, axis=0)
         push_directions = np.repeat(push_directions, n_trials, axis=0)
-
+        
+        a = time()
         # # Add noise and find the new intersection location
         # vertices_copied = deepcopy(vertices)
         # ray_origins = vertices + .01 * normals
@@ -230,6 +231,7 @@ class TopplingModel():
                 vertices[i] = intersect[0]
                 normals[i] = self.mesh.face_normals[face_ind[0]]
         friction_noises = 1 + np.random.normal(scale=.1, size=len(vertices)) / self.ground_friction_coeff
+        print 'noise time:', time() - a
         return vertices, normals, push_directions, friction_noises
 
     def map_edge_to_pose(self, edges):
@@ -408,9 +410,11 @@ class TopplingModel():
                     current_vertex_counts[topple_edge] += 1
 
             i += 1
+            short_circuit = i % n_trials == int(n_trials * self.fraction_before_short_circuit) \
+                and np.sum(current_vertex_counts) == 0
             # If we have gone through each noisy sample at the current vertex, record this vertex, 
             # and clear counts for next vertex
-            if i % n_trials == 0:
+            if i % n_trials == 0 or short_circuit:
                 vertex_probs.append(current_vertex_counts / n_trials)
                 current_vertex_counts = np.zeros(len(self.edge_points))
         vertex_probs = np.array(vertex_probs)
