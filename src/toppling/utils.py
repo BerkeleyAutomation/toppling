@@ -28,7 +28,7 @@ def stable_pose(R):
 
     Parameters
     ----------
-    R : :obj:`RigidTransform`
+    R : :obj:`autolab_core.RigidTransform`
 
     Returns
     -------
@@ -36,4 +36,21 @@ def stable_pose(R):
     """
     if isinstance(R, RigidTransform):
         R = R.matrix
-    return StablePose(0, R, eq_thresh=.02, to_frame='world')
+    return StablePose(0, R, eq_thresh=.03, to_frame='world')
+
+def is_equivalent_pose(R1, R2):
+    """
+    Returns whether the two RigidTransforms are equivalent stable poses
+
+    Parameters
+    ----------
+    R1 : :obj:`autolab_core.RigidTransform`
+    R2 : :obj:`autolab_core.RigidTransform`
+
+    Returns
+    -------
+    bool
+    """
+    z1 = R1.inverse().matrix[:,2]
+    z2 = R2.inverse().matrix[:,2]
+    return np.sum(z1 - z2)

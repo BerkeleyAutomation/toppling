@@ -339,16 +339,34 @@ state_space:
     #object_keys:
     #  # thingiverse: all
     #  # thingiverse-packaged: all
-    #  kit:
-    #    - CatSitting_800_tex # pose 0
-    #  # 3dnet: all
-    #  # big-kit: all
+    #  #kit: all
+    #    #- CatSitting_800_tex # pose 0
+    #  #3dnet: all
+    #  big-kit:
+    #    - Fish_800_tex
     #  # big-3dnet: all
+
     database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
     object_keys:
       mini_dexnet:
         #- pawn # pose 0
         - vase # pose 1
+        #- nozzle # pose 0
+        #- turbine_housing
+
+    #database_path: /nfs/diskstation/db/nvidia.hdf5
+    #object_keys:
+    #  adversarial:
+    #    # - bar_clamp # pose 0
+    #    - gearbox # pose 2
+
+    #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
+    #object_keys:
+    #  adversarial:
+    #    #- demon_helmet # pose 1
+    #    #- yoda # pose 7
+    #    #- grip
+    #    - part3 # pose 4
 
     planar_translation:  
       min:

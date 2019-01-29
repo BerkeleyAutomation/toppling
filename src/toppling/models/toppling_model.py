@@ -5,7 +5,7 @@ from copy import deepcopy
 from time import time
 
 from autolab_core import RigidTransform
-from toppling import normalize, stable_pose, up
+from toppling import normalize, stable_pose, is_equivalent_pose, up
 
 class TopplingModel():
     def __init__(self, obj):
@@ -298,6 +298,8 @@ class TopplingModel():
             curr_edge_ind = edge_inds[i]
             j = i+1
             while j < len(edge_inds):
+                abc = is_equivalent_pose(self.final_poses[curr_edge_ind].T_obj_table, self.final_poses[edge_inds[j]].T_obj_table)
+                print 'comparison', self.final_poses[curr_edge_ind] == self.final_poses[edge_inds[j]], abc
                 if self.final_poses[curr_edge_ind] == self.final_poses[edge_inds[j]]:
                     equivalent_edges.append(edge_inds[j])
                     edge_inds.pop(j)
@@ -410,11 +412,12 @@ class TopplingModel():
                     current_vertex_counts[topple_edge] += 1
 
             i += 1
-            short_circuit = i % n_trials == int(n_trials * self.fraction_before_short_circuit) \
-                and np.sum(current_vertex_counts) == 0
+            if i % n_trials == int(n_trials * self.fraction_before_short_circuit) \
+                and np.sum(current_vertex_counts) == 0:
+                i = math.ceil(i / float(n_trials)) * n_trials
             # If we have gone through each noisy sample at the current vertex, record this vertex, 
             # and clear counts for next vertex
-            if i % n_trials == 0 or short_circuit:
+            if i % n_trials == 0:
                 vertex_probs.append(current_vertex_counts / n_trials)
                 current_vertex_counts = np.zeros(len(self.edge_points))
         vertex_probs = np.array(vertex_probs)
