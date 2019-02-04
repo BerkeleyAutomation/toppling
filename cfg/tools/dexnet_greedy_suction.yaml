@@ -1,0 +1,47 @@
+policy:
+  type: dexnet_greedy
+
+  database:
+    #database_path: /nfs/diskstation/db/dexnet_4.hdf5
+    #object_keys:
+    #  thingiverse: all
+    #  thingiverse-packaged: all
+    #  kit: all
+    #  3dnet: all
+    #  big-kit: all
+    #  big-3dnet: all
+    database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    object_keys:
+      thingiverse: all
+      thingiverse_packaged: all
+      kit: all
+      3dnet: all
+      big_kit: all
+      big_3dnet: all
+      mini_dexnet: all
+
+  params:
+    check_collisions: 1
+    check_object_interactions: 1
+    external_contact_friction_coef: 0.8
+    reference_frame: world
+
+    sample_contact_area: 0
+    constrain_finger_surface: 1
+    obj_collision_num_samples: 10
+
+    gripper: righthand
+    metric_name: robust_suction_wrench_resistance
+
+    axis_angle:
+      min: -90
+      max: 90
+
+    approach_angle:
+      min: -80
+      max: 80
+      num: 1
+
+    # in degrees
+    max_blocking_force_angle: 30
+

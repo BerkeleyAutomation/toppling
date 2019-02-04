@@ -11,14 +11,28 @@ from toppling.models import TopplingModel
 from toppling import normalize, up
 
 class TopplingPolicy(MultiEnvPolicy):
-    def __init__(self, grasping_policy_config_filename, use_sensitivity=True, num_samples=1000):
+    def __init__(self, config, use_sensitivity=True, num_samples=1000):
+        """
+        config : :obj:`autolab_core.YamlConfig`
+            configuration with toppling parameters
+        use_sensitivity : bool
+            Whether to run multiple trials per vertex to get a probability estimate
+        num_samples : int
+            how many vertices to sample on the object surface
+        """
         MultiEnvPolicy.__init__(self)
-        grasping_config = YamlConfig(grasping_policy_config_filename)
-        database_config = grasping_config['policy']['database']
-        params_config = grasping_config['policy']['params']
-        self.grasping_policy = DexNetGreedyGraspingPolicy(database_config, params_config)
+        grasping_config = YamlConfig(config['grasping_policy_config_filename'])
+        self.grasping_policy = DexNetGreedyGraspingPolicy(
+            grasping_config['policy']['database'], 
+            grasping_config['policy']['params']
+        )
+
+        policy_params = config['policy_params']
         self.use_sensitivity = use_sensitivity
         self.num_samples = num_samples
+        self.thresh = policy_params['thresh']
+        
+        self.toppling_model = TopplingModel(config['model_params'])
     
     def set_environment(self, environment):
         MultiEnvPolicy.set_environment(self, environment)
@@ -63,10 +77,6 @@ class TopplingPolicy(MultiEnvPolicy):
         x = normalize(np.cross(z, -y))
         return np.hstack((x.reshape((-1,1)), y.reshape((-1,1)), z.reshape((-1,1))))
 
-    # def get_best_topple_vertex(self, quality_increases):
-    #     # vertex probs for final poses with best grasp quality
-        
-
     def action(self, state):
         """
         returns the push vertex and direction which maximizes the grasp quality after topping
@@ -85,15 +95,14 @@ class TopplingPolicy(MultiEnvPolicy):
         vertices, face_ind = sample.sample_surface_even(mesh, self.num_samples)
         # Cut out vertices that are too close to the ground
         z_comp = vertices[:,2]
-        thresh = .15
-        valid_vertex_ind = z_comp > (1-thresh)*np.min(z_comp) + thresh*np.max(z_comp)
+        valid_vertex_ind = z_comp > (1-self.thresh)*np.min(z_comp) + self.thresh*np.max(z_comp)
         vertices, face_ind = vertices[valid_vertex_ind], face_ind[valid_vertex_ind]
 
         normals = mesh.face_normals[face_ind]
         push_directions = -deepcopy(normals)
-        
-        toppling_model = TopplingModel(state)
-        poses, vertex_probs = toppling_model.predict(
+
+        self.toppling_model.load_object(state)
+        poses, vertex_probs = self.toppling_model.predict(
             vertices, 
             normals, 
             push_directions, 
@@ -102,14 +111,14 @@ class TopplingPolicy(MultiEnvPolicy):
 
         T_old = deepcopy(state.obj.T_obj_world)
         grasp_start = time()
-        qualities = np.array([self.quality(state, pose.T_obj_table) for pose in poses])
+        qualities = np.array([self.quality(state, pose) for pose in poses])
         print 'grasp quality time:', time() - grasp_start
         # quality_increases = (quality_increases + 1 - quality_increases[0]) / 2.0
         # quality_increases = np.maximum(quality_increases - quality_increases[0], 0)
 
-        #quality_increases = qualities - np.amin(qualities)
-        #quality_increases = quality_increases / (np.amax(quality_increases) + 1e-5)
-        quality_increases = (qualities - qualities[0]) / 2 + .5
+        quality_increases = qualities - np.amin(qualities)
+        quality_increases = quality_increases / (np.amax(quality_increases) + 1e-5)
+        #quality_increases = (qualities - qualities[0]) / 2 + .5
         state.obj.T_obj_world = T_old
 
         topple_probs = np.sum(vertex_probs[:,1:], axis=1)
@@ -135,6 +144,7 @@ class TopplingPolicy(MultiEnvPolicy):
             to_frame='world'
         )
         print 'Total Policy Time:', time() - policy_start
+        print 'qualities', qualities
         
         return LinearPushAction(
             start_pose,
@@ -147,9 +157,9 @@ class TopplingPolicy(MultiEnvPolicy):
                 'qualities': qualities[1:],
                 'current_pose': state.T_obj_world,
                 'current_quality': qualities[0],
-                'final_poses': [stable_pose.T_obj_table for stable_pose in toppling_model.final_poses[1:]], # remove the first pose which corresponds to "no topple"
-                'bottom_points': toppling_model.bottom_points,
-                'com': toppling_model.com,
+                'final_poses': poses[1:], # remove the first pose which corresponds to "no topple"
+                'bottom_points': self.toppling_model.bottom_points,
+                'com': self.toppling_model.com,
                 'final_pose_ind': final_pose_ind
             }
         )

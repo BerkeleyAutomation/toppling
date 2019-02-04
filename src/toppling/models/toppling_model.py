@@ -8,19 +8,22 @@ from autolab_core import RigidTransform
 from toppling import normalize, stable_pose, is_equivalent_pose, up
 
 class TopplingModel():
-    def __init__(self, obj):
+    def __init__(self, config, obj=None):
         """
         Parameters
         ----------
+        config : :obj:`autolab_core.YamlConfig`
+            configuration with toppling parameters
         obj : :obj:`GraspableObject3D`
             object to load
         """
-        self.ground_friction_coeff = .5
-        self.fraction_before_short_circuit = .4
-        self.num_approx = 30
-        self.finger_sigma = .00125 # noise for finger position
-        self.n_trials = 10 # if you choose to use sensitivity
-        self.load_object(obj)
+        self.ground_friction_coeff = config['ground_friction_coeff']
+        self.fraction_before_short_circuit = config['fraction_before_short_circuit']
+        self.num_approx = config['num_approx']
+        self.finger_sigma = config['finger_sigma'] # noise for finger position
+        self.n_trials = config['n_trials'] # if you choose to use sensitivity
+        if obj != None:
+            self.load_object(obj)
 
     def load_object(self, obj):
         """
@@ -35,6 +38,7 @@ class TopplingModel():
         """
         self.obj = obj
         self.mesh = deepcopy(obj.mesh).apply_transform(obj.T_obj_world.matrix)
+        self.mesh.fix_normals()
         #self.com = self.mesh.center_mass
         self.com = obj.T_obj_world.translation
         self.mass = 1
@@ -43,9 +47,7 @@ class TopplingModel():
         z_components = np.around(self.mesh.vertices[:,2], 3)
         lowest_z = np.min(z_components)
         cutoff = .02
-        self.thresh = (1-cutoff) * np.min(z_components) + cutoff * np.max(z_components)
         bottom_points = self.mesh.vertices[z_components == lowest_z][:,:2]
-        # bottom_points = self.mesh.vertices[z_components < self.thresh][:,:2]
         bottom_points = bottom_points[ConvexHull(bottom_points).vertices]
         self.bottom_points = np.append(
             bottom_points,
@@ -223,7 +225,6 @@ class TopplingModel():
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .01 * normals[i]
             intersect, _, face_ind = \
                 self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
-            # print 'tmp', intersect, face_ind
             if len(face_ind) == 0:
                 vertices[i] = np.array([0,0,0])
                 normals[i] = np.array([0,0,0])
@@ -242,7 +243,7 @@ class TopplingModel():
         -------
         :obj:`list` of :obj:`RigidTransform`
         """
-        current_pose = stable_pose(self.obj.T_obj_world)
+        current_pose = self.obj.T_obj_world
         final_poses = []
         for edge in edges:
             edge_point1, edge_point2 = self.edge_points[edge]
@@ -260,9 +261,8 @@ class TopplingModel():
             # print lowest_z, edge_point1[2]
             # if lowest_z >= edge_point1[2]: # object would topple
             if True:
-                resting_pose = stable_pose(self.obj.obj.resting_pose(R_initial))
+                resting_pose = self.obj.obj.resting_pose(R_initial)
                 final_poses.append(resting_pose)
-                # final_poses.append(stable_pose(R_initial))
             else:
                 # object would rotate back onto original stable pose
                 # (assuming finger doesn't keep pushing)
@@ -298,9 +298,7 @@ class TopplingModel():
             curr_edge_ind = edge_inds[i]
             j = i+1
             while j < len(edge_inds):
-                abc = is_equivalent_pose(self.final_poses[curr_edge_ind].T_obj_table, self.final_poses[edge_inds[j]].T_obj_table)
-                print 'comparison', self.final_poses[curr_edge_ind] == self.final_poses[edge_inds[j]], abc
-                if self.final_poses[curr_edge_ind] == self.final_poses[edge_inds[j]]:
+                if is_equivalent_pose(self.final_poses[curr_edge_ind], self.final_poses[edge_inds[j]]):
                     equivalent_edges.append(edge_inds[j])
                     edge_inds.pop(j)
                 else:
@@ -355,7 +353,7 @@ class TopplingModel():
             
             # short circuit the trial if the vertex is too low or the noise caused the 
             # finger to miss the object 
-            if vertex[2] > self.thresh or not np.array_equal(normal, np.array([0,0,0])):
+            if not np.array_equal(normal, np.array([0,0,0])):
                 # Go through each edge and find out which one requires the least force to topple
                 # from the vertex
                 min_required_force = np.inf # required force to topple over topple_edge
@@ -433,7 +431,7 @@ class TopplingModel():
         # adding the probability of not toppling
         not_topple_prob = 1 - np.sum(vertex_probs, axis=1, keepdims=True)
         vertex_probs = np.hstack([not_topple_prob, vertex_probs])
-        self.final_poses.insert(0, stable_pose(self.obj.T_obj_world))
+        self.final_poses.insert(0, self.obj.T_obj_world)
         
         grouped_poses, vertex_probs = self.combine_equivalent_poses(self.final_poses, vertex_probs)
         return grouped_poses, vertex_probs

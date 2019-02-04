@@ -53,4 +53,5 @@ def is_equivalent_pose(R1, R2):
     """
     z1 = R1.inverse().matrix[:,2]
     z2 = R2.inverse().matrix[:,2]
-    return np.sum(z1 - z2)
+    diff = np.linalg.norm(z1 - z2)
+    return -.1 < diff and diff < .1

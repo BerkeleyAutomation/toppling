@@ -9,6 +9,7 @@ from dexnet.constants import *
 from dexnet.envs import GraspingEnv
 from dexnet.visualization import DexNetVisualizer3D as vis3d
 from toppling.policies import TopplingPolicy
+from toppling import is_equivalent_pose
 
 SEED = 107
 CAMERA_ROT = np.array([[ 0,-1, 0],
@@ -36,7 +37,7 @@ def display_or_save(filename):
     else:
         vis3d.show(starting_camera_pose=CAMERA_POSE)
 
-if __name__ == '__main__':
+def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        '..',
                                        'cfg/tools/benchmark_topple_policy_graspingenv.yaml'
@@ -54,11 +55,14 @@ if __name__ == '__main__':
     )
     parser.add_argument('--save', action='store_true', help='save to a picture rather than opening a window')
     parser.add_argument('--before', action='store_true', help='Whether to show the object before the action')
-    args = parser.parse_args()
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_args()
     print '\n\nSaving to file' if args.save else '\n\nDisplaying in a window'
 
     config = YamlConfig(args.config_filename)
-    policy = TopplingPolicy(config['policy']['grasping_policy_config_filename'], use_sensitivity=False)
+    policy = TopplingPolicy(config['policy'], use_sensitivity=True)
 
     if config['debug']:
         random.seed(SEED)
@@ -66,10 +70,16 @@ if __name__ == '__main__':
     
     env = GraspingEnv(config, config['vis'])
     env.reset()
+    env.state.material_props._color = np.array([0.86274509803] * 3)
     obj_name = env.state.obj.key
     policy.set_environment(env.environment)
     if args.before:
         env.render_3d_scene()
+        color = np.array([0,0,0])
+        vert = np.array([-0.01091172,  0.02806294, 0.06962403])
+        normal = vert + .01*np.array([-0.84288757, -0.3828792,  0.37807943])
+        vis3d.points(Point(vert), scale=.0005, color=color)
+        vis3d.points(Point(normal), scale=.0005, color=np.array([1,0,0]))
         vis3d.show(starting_camera_pose=CAMERA_POSE)
     action = policy.action(env.state)
 
@@ -86,9 +96,9 @@ if __name__ == '__main__':
         vis3d.figure()
         env.render_3d_scene()
         num_vertices = len(action.metadata['vertices'])
-        for i, vertex, quality_increase in zip(np.arange(num_vertices), action.metadata['vertices'], action.metadata['quality_increases']):
+        for i, vertex, q_increase in zip(np.arange(num_vertices), action.metadata['vertices'], action.metadata['quality_increases']):
             topples = action.metadata['final_pose_ind'][i] != 0
-            color = np.array([min(1, 2*(1-prob)), min(2*prob, 1), 0]) if topples else np.array([0,0,0])
+            color = np.array([min(1, 2*(1-q_increase)), min(2*q_increase, 1), 0]) if topples else np.array([0,0,0])
             vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
         display_or_save('{}_quality_increases.gif'.format(obj_name))
     
@@ -96,7 +106,6 @@ if __name__ == '__main__':
     HSV_tuples = [(x*1.0/n, 1, 0.5) for x in range(n)]
     colors = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
     colors = np.vstack([np.array([0,0,0]), colors])
-    print colors
     if args.topple_graph:
         vis3d.figure()
         env.render_3d_scene()

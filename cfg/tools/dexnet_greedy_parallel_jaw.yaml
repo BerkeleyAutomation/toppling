@@ -3,12 +3,21 @@ policy:
   fully_observed: 1
 
   database:
+    #database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    #object_keys:
+    #  3dnet: all
+    #  big_3dnet: all
+    #  kit: all
+    #  big_kit: all
+    #  mini_dexnet: all
     database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
     object_keys:
-      3dnet: all
-      big_3dnet: all
+      thingiverse: all
+      thingiverse_packaged: all
       kit: all
+      3dnet: all
       big_kit: all
+      big_3dnet: all
       mini_dexnet: all
 
   params:
