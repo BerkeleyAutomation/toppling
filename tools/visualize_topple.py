@@ -78,8 +78,8 @@ if __name__ == '__main__':
         color = np.array([0,0,0])
         vert = np.array([-0.01091172,  0.02806294, 0.06962403])
         normal = vert + .01*np.array([-0.84288757, -0.3828792,  0.37807943])
-        vis3d.points(Point(vert), scale=.0005, color=color)
-        vis3d.points(Point(normal), scale=.0005, color=np.array([1,0,0]))
+        vis3d.points(Point(vert), scale=.001, color=color)
+        vis3d.points(Point(normal), scale=.001, color=np.array([1,0,0]))
         vis3d.show(starting_camera_pose=CAMERA_POSE)
     action = policy.action(env.state)
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         env.render_3d_scene()
         for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
             color = np.array([min(1, 2*(1-prob)), min(2*prob, 1), 0])
-            vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+            vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
         display_or_save('{}_topple_probs.gif'.format(obj_name))
 
     if args.quality:
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         for i, vertex, q_increase in zip(np.arange(num_vertices), action.metadata['vertices'], action.metadata['quality_increases']):
             topples = action.metadata['final_pose_ind'][i] != 0
             color = np.array([min(1, 2*(1-q_increase)), min(2*q_increase, 1), 0]) if topples else np.array([0,0,0])
-            vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+            vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
         display_or_save('{}_quality_increases.gif'.format(obj_name))
     
     n = len(action.metadata['final_poses'])
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         env.render_3d_scene()
         for vertex, pose_ind in zip(action.metadata['vertices'], action.metadata['final_pose_ind']):
             color = colors[pose_ind]
-            vis3d.points(Point(vertex, 'world'), scale=.0005, color=color)
+            vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
         vis3d.show(starting_camera_pose=CAMERA_POSE)
 
         pose_num = 0
@@ -133,6 +133,6 @@ if __name__ == '__main__':
             
             vis3d.figure()
             env.render_3d_scene()
-            vis3d.points(Point(edge_point1, 'world'), scale=.0005, color=np.array([0,0,1]))
-            vis3d.points(Point(edge_point2, 'world'), scale=.0005, color=np.array([0,0,1]))
+            #vis3d.points(Point(edge_point1, 'world'), scale=.001, color=np.array([0,0,1]))
+            #vis3d.points(Point(edge_point2, 'world'), scale=.001, color=np.array([0,0,1]))
             vis3d.show(starting_camera_pose=CAMERA_POSE) 

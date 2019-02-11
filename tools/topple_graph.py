@@ -62,8 +62,8 @@ def add_all_nodes(G, node_id, metadata, check_duplicates=True):
     return labels, edge_alphas
 
 def show_graph(G):
-    #pos = nx.layout.spring_layout(G)
-    pos = nx.layout.circular_layout(G)
+    pos = nx.layout.spring_layout(G)
+    #pos = nx.layout.circular_layout(G)
 
     for node_id, node in G.nodes(data=True):
         node_plt = nx.draw_networkx_nodes(
@@ -78,7 +78,7 @@ def show_graph(G):
         )
         node_plt.set_edgecolor('k')
     edges = nx.draw_networkx_edges(G, pos, arrowstyle='->',
-                                   arrowsize=10, width=5
+                                   arrowsize=20, width=5
     )
     nx.draw_networkx_labels(G, pos, font_color=LIGHT_BLUE)
 
@@ -97,6 +97,7 @@ def parse_args():
     )
     parser = argparse.ArgumentParser(description='Rollout a policy for bin picking in order to evaluate performance')
     parser.add_argument('--config_filename', type=str, default=default_config_filename, help='configuration file to use') 
+    parser.add_argument('--before', action='store_true', help='Whether to show the object before the action')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -113,6 +114,15 @@ if __name__ == '__main__':
     policy.set_environment(env.environment)
     original_action = policy.action(env.state)
     print 'qualities', original_action.metadata['qualities']
+
+    if args.before:
+        env.render_3d_scene()
+        color = np.array([0,0,0])
+        vert = np.array([-0.01091172,  0.02806294, 0.06962403])
+        normal = vert + .01*np.array([-0.84288757, -0.3828792,  0.37807943])
+        vis3d.points(Point(vert), scale=.001, color=color)
+        vis3d.points(Point(normal), scale=.001, color=np.array([1,0,0]))
+        vis3d.show(starting_camera_pose=CAMERA_POSE)
 
     # Visualizing Topple Graph
     G = nx.DiGraph()

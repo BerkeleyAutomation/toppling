@@ -127,8 +127,8 @@ class TopplingPolicy(MultiEnvPolicy):
         
         best_topple_vertices = np.arange(len(quality_increases))[quality_increases == np.amax(quality_increases)]
         best_ind = best_topple_vertices[0]
-        start_position = vertices[best_ind] + normals[best_ind] * .01
-        end_position = vertices[best_ind] - normals[best_ind] * .01
+        start_position = vertices[best_ind] + normals[best_ind] * .015
+        end_position = vertices[best_ind] - normals[best_ind] * .04
         R_push = self.get_hand_pose(start_position, end_position)
         
         start_pose = RigidTransform(
@@ -139,7 +139,7 @@ class TopplingPolicy(MultiEnvPolicy):
         )
         end_pose = RigidTransform(
             rotation=R_push,
-            translation=start_position,
+            translation=end_position,
             from_frame='grasp',
             to_frame='world'
         )
@@ -160,6 +160,7 @@ class TopplingPolicy(MultiEnvPolicy):
                 'final_poses': poses[1:], # remove the first pose which corresponds to "no topple"
                 'bottom_points': self.toppling_model.bottom_points,
                 'com': self.toppling_model.com,
-                'final_pose_ind': final_pose_ind
+                'final_pose_ind': final_pose_ind,
+                'best_ind': best_ind
             }
         )

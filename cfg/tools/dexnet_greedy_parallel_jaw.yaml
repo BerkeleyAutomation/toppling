@@ -10,6 +10,7 @@ policy:
     #  kit: all
     #  big_kit: all
     #  mini_dexnet: all
+
     database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
     object_keys:
       thingiverse: all
@@ -19,6 +20,10 @@ policy:
       big_kit: all
       big_3dnet: all
       mini_dexnet: all
+
+    #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
+    #object_keys:
+    #  adversarial: all
 
   params:
     check_collisions: 1
