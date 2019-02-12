@@ -7,8 +7,8 @@ debug: 1
 fully_observed: 1
 policy:
   type: toppling
-  grasping_policy_config_filename: cfg/tools/dexnet_greedy_parallel_jaw.yaml
-  #grasping_policy_config_filename: cfg/tools/dexnet_greedy_suction.yaml
+  # grasping_policy_config_filename: cfg/tools/dexnet_greedy_parallel_jaw.yaml
+  grasping_policy_config_filename: cfg/tools/dexnet_greedy_suction.yaml
   policy_params:
     thresh: 0.15
   model_params:
@@ -17,6 +17,7 @@ policy:
     num_approx: 30
     finger_sigma: 0.00125
     n_trials: 10
+    max_force: 400 # 10x the average for gearbox
 
 # ray params
 ray:
@@ -352,19 +353,19 @@ state_space:
     #    - Fish_800_tex
     #  # big-3dnet: all
 
-    database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
-    object_keys:
-     mini_dexnet:
-       #- pawn # pose 0
-       - vase # pose 1
-       #- nozzle # pose 0
-       #- turbine_housing
-
-    # database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    # database_path: /nfs/diskstation/projects/dex-net/db/yumi_mini_dexnet.hdf5
     # object_keys:
-    #   mini_dexnet:
-    #     #- bar_clamp # pose 0
-    #     - gearbox # pose 4
+    #  mini_dexnet:
+    #    #- pawn # pose 0
+    #    - vase # pose 1
+    #    #- nozzle # pose 0
+    #    #- turbine_housing
+
+    database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    object_keys:
+      mini_dexnet:
+        #- bar_clamp # pose 0
+        # - gearbox # pose 4
         #- pawn # pose 5
         #- climbing_hold
         #- endstop_holder
@@ -375,6 +376,7 @@ state_space:
         #- part3
         #- pipe_connecter
         #- turbine_housing
+        - vase
 
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:

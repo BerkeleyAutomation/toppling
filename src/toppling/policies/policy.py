@@ -89,7 +89,7 @@ class TopplingPolicy(MultiEnvPolicy):
         policy_start = time()
         # centering around world frame origin
         state.T_obj_world.translation[:2] = np.array([0,0])
-        mesh = deepcopy(state.mesh).apply_transform(state.T_obj_world.matrix)
+        mesh = state.mesh.copy().apply_transform(state.T_obj_world.matrix)
 
         mesh.fix_normals()
         vertices, face_ind = sample.sample_surface_even(mesh, self.num_samples)
@@ -102,7 +102,7 @@ class TopplingPolicy(MultiEnvPolicy):
         push_directions = -deepcopy(normals)
 
         self.toppling_model.load_object(state)
-        poses, vertex_probs = self.toppling_model.predict(
+        poses, vertex_probs, min_required_forces = self.toppling_model.predict(
             vertices, 
             normals, 
             push_directions, 
@@ -126,7 +126,8 @@ class TopplingPolicy(MultiEnvPolicy):
         final_pose_ind = np.argmax(vertex_probs, axis=1)
         
         best_topple_vertices = np.arange(len(quality_increases))[quality_increases == np.amax(quality_increases)]
-        best_ind = best_topple_vertices[0]
+        least_force = np.argmin(min_required_forces[best_topple_vertices])
+        best_ind = best_topple_vertices[least_force]
         start_position = vertices[best_ind] + normals[best_ind] * .015
         end_position = vertices[best_ind] - normals[best_ind] * .04
         R_push = self.get_hand_pose(start_position, end_position)

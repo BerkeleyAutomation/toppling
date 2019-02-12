@@ -22,6 +22,7 @@ class TopplingModel():
         self.num_approx = config['num_approx']
         self.finger_sigma = config['finger_sigma'] # noise for finger position
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
+        self.max_force = config['max_force']
         if obj != None:
             self.load_object(obj)
 
@@ -37,7 +38,7 @@ class TopplingModel():
             object to load
         """
         self.obj = obj
-        self.mesh = deepcopy(obj.mesh).apply_transform(obj.T_obj_world.matrix)
+        self.mesh = obj.mesh.copy().apply_transform(obj.T_obj_world.matrix)
         self.mesh.fix_normals()
         #self.com = self.mesh.center_mass
         self.com = obj.T_obj_world.translation
@@ -256,7 +257,7 @@ class TopplingModel():
             R_initial = RigidTransform.rotation_from_axis_and_origin(y, edge_point1, topple_angle).dot(self.obj.T_obj_world)
 
             # before the object settles
-            initial_rotated_mesh = deepcopy(self.mesh).apply_transform(R_initial.matrix)
+            initial_rotated_mesh = self.mesh.copy().apply_transform(R_initial.matrix)
             lowest_z = np.min(initial_rotated_mesh.vertices[:,2])
             # print lowest_z, edge_point1[2]
             # if lowest_z >= edge_point1[2]: # object would topple
@@ -341,11 +342,13 @@ class TopplingModel():
         current_vertex_counts = np.zeros(len(self.edge_points))
         i = 0
         a = time()
+        min_required_forces = []
         while i < len(vertices):
             vertex = vertices[i]
             normal = normals[i]
             push_direction = push_directions[i]
             noise = friction_noises[i] if use_sensitivity else 1
+            vertex_forces = []
             
             # elif vertex[2] < self.thresh or i % n_trials == int(n_trials * fraction_before_short_circuit):
             #     i += 1
@@ -406,6 +409,7 @@ class TopplingModel():
                     ):
                         min_required_force = required_force
                         topple_edge = curr_edge
+                vertex_forces.append(min(min_required_force, self.max_force))
                 if topple_edge is not None: # if it topples over at least one edge
                     current_vertex_counts[topple_edge] += 1
 
@@ -413,11 +417,13 @@ class TopplingModel():
             if i % n_trials == int(n_trials * self.fraction_before_short_circuit) \
                 and np.sum(current_vertex_counts) == 0:
                 i = math.ceil(i / float(n_trials)) * n_trials
+                vertex_forces.extend([self.max_force] * (n_trials - len(vertex_forces)))
             # If we have gone through each noisy sample at the current vertex, record this vertex, 
             # and clear counts for next vertex
             if i % n_trials == 0:
                 vertex_probs.append(current_vertex_counts / n_trials)
                 current_vertex_counts = np.zeros(len(self.edge_points))
+                min_required_forces.append(np.mean(vertex_forces))
         vertex_probs = np.array(vertex_probs)
         print 'probability time', time() - a
 
@@ -434,5 +440,5 @@ class TopplingModel():
         self.final_poses.insert(0, self.obj.T_obj_world)
         
         grouped_poses, vertex_probs = self.combine_equivalent_poses(self.final_poses, vertex_probs)
-        return grouped_poses, vertex_probs
+        return grouped_poses, vertex_probs, np.array(min_required_forces)
         
