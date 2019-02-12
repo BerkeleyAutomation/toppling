@@ -1,5 +1,0 @@
-src/toppling.egg-info/PKG-INFO
-src/toppling.egg-info/SOURCES.txt
-src/toppling.egg-info/dependency_links.txt
-src/toppling.egg-info/requires.txt
-src/toppling.egg-info/top_level.txt

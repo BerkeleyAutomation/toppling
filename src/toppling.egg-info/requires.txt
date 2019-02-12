@@ -1,8 +1,0 @@
-autolab-core
-meshrender
-visualization
-trimesh[easy]
-ipython==5.5.0
-matplotlib
-numpy
-pybullet
