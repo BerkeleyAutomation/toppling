@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import os
 import random
+import cv2
 
 from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
@@ -12,24 +13,10 @@ from dexnet.visualization import DexNetVisualizer3D as vis3d
 from ambidex.databases.postgres import YamlLoader, PostgresSchema
 from ambidex.class_registry import postgres_base_cls_map, full_cls_list
 from toppling.policies import TopplingPolicy
-from toppling import is_equivalent_pose
+from toppling import is_equivalent_pose, camera_pose
 
 SEED = 107
-CAMERA_ROT = np.array([[ 0,-1, 0],
-                       [-1, 0, 0],
-                       [ 0, 0,-1]])
-theta = np.pi/3
-c = np.cos(theta)
-s = np.sin(theta)
-CAMERA_ROT = np.array([[c,0,-s],
-                       [0,1,0],
-                       [s,0,c]]).dot(CAMERA_ROT)
-theta = np.pi/6
-c = np.cos(theta)
-s = np.sin(theta)
-CAMERA_TRANS = np.array([-.25,-.25,.35])
-CAMERA_TRANS = np.array([-.4,0,.3])
-CAMERA_POSE = RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
+CAMERA_POSE = camera_pose()
 
 class YamlObjLoader(object):
     def __init__(self, basedir):
@@ -116,6 +103,10 @@ def update_scene(scene, grasp_obj):
     so = SceneObject(grasp_obj.geometry, grasp_obj.pose.copy(), mp)
     scene.add_object(grasp_obj.name, so)
 
+def quit():
+    kill_stream()
+    sys.exit()
+
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        '..',
@@ -179,3 +170,38 @@ if __name__ == '__main__':
     min_pt = np.array([0.25, -0.12, 0])
     max_pt = np.array([0.5, 0.12, 0.25])
     mask_box = Box(min_pt, max_pt, 'world')
+
+    policy = SingleTopplePolicy(config['policy'], use_sensitivity=True)
+    env = GraspingEnv(config, config['vis'])
+    env.reset()
+    env.state.material_props._color = np.array([0.5] * 3)
+    policy.set_environment(env.environment)
+    
+    update_scene(color_scene, env.state.obj)
+    update_scene(depth_scene, env.state.obj)
+
+    wrapped_segmask = color_scene.wrapped_render([RenderMode.SEGMASK])
+    mask = wrapped_segmask[0].inverse().data
+    mask_im = cv2.merge((mask, mask, mask, mask))
+    cv2.imwrite('tmp.png', mask_im)
+
+    # Create simulated pointcloud for ICP matching
+    wrapped_depth = depth_scene.wrapped_render([RenderMode.DEPTH])
+    sim_point_cloud = phoxi_tf*phoxi.intrinsics.deproject(wrapped_depth[0])
+    sim_point_cloud_masked, _ = sim_point_cloud.box_mask(mask_box)
+
+    update_stream('tmp.png')
+    response = ''
+    try:
+        while response != 'r' and response != 'y' and response != 'q':
+            response = utils.keyboard_input('Press \'y\' when part is aligned, \'r\' to reset camera, \'s\' to skip pose, \'q\' to quit:')
+            if response == 'r':
+                reset_stream_usb()
+                update_stream('tmp.png')
+                response = ''
+        kill_stream()
+        if response == 'q':
+            quit()
+    except Exception as e:
+        print 'Something went wrong'
+        quit()

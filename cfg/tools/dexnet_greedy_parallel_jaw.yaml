@@ -11,15 +11,20 @@ policy:
     #  big_kit: all
     #  mini_dexnet: all
 
-    database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
-    object_keys:
-      thingiverse: all
-      thingiverse_packaged: all
-      kit: all
-      3dnet: all
-      big_kit: all
-      big_3dnet: all
-      mini_dexnet: all
+     database_path: /nfs/diskstation/db/toppling.hdf5
+     object_keys:
+       mini_dexnet: all
+       adversarial: all
+
+    #database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
+    #object_keys:
+    # thingiverse: all
+    # thingiverse_packaged: all
+    # kit: all
+    # 3dnet: all
+    # big_kit: all
+    # big_3dnet: all
+    # mini_dexnet: all
 
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:

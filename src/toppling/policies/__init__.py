@@ -1,1 +1,1 @@
-from policy import TopplingPolicy
+from policy import SingleTopplePolicy, MultiTopplePolicy

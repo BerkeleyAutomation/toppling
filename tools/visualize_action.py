@@ -10,7 +10,7 @@ from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv
 from dexnet.visualization import DexNetVisualizer3D as vis3d
-from toppling.policies import TopplingPolicy
+from toppling.policies import SingleTopplePolicy
 from toppling import is_equivalent_pose
 
 SEED = 107
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     print '\n\nSaving to file' if args.save else '\n\nDisplaying in a window'
 
     config = YamlConfig(args.config_filename)
-    policy = TopplingPolicy(config['policy'], use_sensitivity=True)
+    policy = SingleTopplePolicy(config['policy'], use_sensitivity=True)
 
     if config['debug']:
         random.seed(SEED)

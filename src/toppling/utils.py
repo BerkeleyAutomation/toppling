@@ -55,3 +55,17 @@ def is_equivalent_pose(R1, R2):
     z2 = R2.inverse().matrix[:,2]
     diff = np.linalg.norm(z1 - z2)
     return -.1 < diff and diff < .1
+
+def camera_pose():
+    CAMERA_ROT = np.array([[ 0,-1, 0],
+                           [-1, 0, 0],
+                           [ 0, 0,-1]])
+    theta = np.pi/3
+    c = np.cos(theta)
+    s = np.sin(theta)
+    CAMERA_ROT = np.array([[c,0,-s],
+                           [0,1,0],
+                           [s,0,c]]).dot(CAMERA_ROT)
+    CAMERA_TRANS = np.array([-.25,-.25,.35])
+    CAMERA_TRANS = np.array([-.4,0,.3])
+    return RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
