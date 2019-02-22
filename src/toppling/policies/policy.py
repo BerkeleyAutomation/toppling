@@ -77,9 +77,12 @@ class TopplePolicy(MultiEnvPolicy):
         3x3 :obj:`numpy.ndarray`
             3D Rotation Matrix
         """
-        z = normalize(end - start)
-        y = normalize(np.cross(z, -up))
-        x = normalize(np.cross(z, -y))
+        #z = normalize(end - start)
+        #y = normalize(np.cross(z, -up))
+        #x = normalize(np.cross(z, -y))
+        y = normalize(end - start)
+        z = normalize(np.cross(y, up))
+        x = normalize(np.cross(y, z))
         return np.hstack((x.reshape((-1,1)), y.reshape((-1,1)), z.reshape((-1,1))))
 
     def topple_action(self, state):
@@ -102,25 +105,10 @@ class TopplePolicy(MultiEnvPolicy):
             push_directions, 
             use_sensitivity=self.use_sensitivity
         )
-        from ambicore.visualization import Visualizer3D as vis3d
-        j = 214
-        a = j*self.toppling_model.n_trials
-        b = (j+1)*self.toppling_model.n_trials
-        # for point in self.toppling_model.vertices[a:b]:
-        #    vis3d.points(Point(point), scale=.001)
-        for i in range(a, b):
-            start = self.toppling_model.vertices[i]
-            end = start - .01*self.toppling_model.push_directions[i]
-            vis3d.plot([start, end], color=[0,1,0], radius=.0002)
-        #vis3d.points(Point(vertices[j]), scale=.001)
-        #self.env.render_3d_scene()
-        vis3d.mesh(self.env.state.mesh, self.env.state.T_obj_world.matrix, color=self.env.state.color)
-        vis3d.show(starting_camera_pose=camera_pose())
 
         grasp_start = time()
         T_old = deepcopy(state.obj.T_obj_world)
         qualities = np.array([self.quality(state, pose) for pose in poses])
-        qualities = np.random.random(len(poses))
         state.obj.T_obj_world = T_old
         if self.log:
             print 'grasp quality time:', time() - grasp_start
@@ -130,6 +118,7 @@ class TopplePolicy(MultiEnvPolicy):
         quality_increases = quality_increases / (np.amax(quality_increases) + 1e-5)
 
         topple_probs = np.sum(vertex_probs[:,1:], axis=1)
+        #print np.argsort(topple_probs)
         quality_increases = vertex_probs.dot(quality_increases)
         final_pose_ind = np.argmax(vertex_probs, axis=1)
         return {
@@ -204,6 +193,7 @@ class SingleTopplePolicy(TopplePolicy):
         state.obj.T_obj_world = orig_pose
         
         topple_action_metadata['best_ind'] = best_ind
+        topple_action_metadata['predicted_next_state'] = topple_action_metadata['vertex_probs'][best_ind]
         return LinearPushAction(
             start_pose,
             end_pose,
@@ -241,22 +231,19 @@ class MultiTopplePolicy(TopplePolicy):
             if not already_exists:
                 self.G.add_node(self.node_idx, pose=pose, gq=quality, node_type='state')
                 to_node_idx = self.node_idx
-                #self.G.add_edge(node_id, self.node_idx)
-                if self.log:
-                    print 'edge from {} to {}={}'.format(node_id, self.node_idx, np.clip(np.max(metadata['vertex_probs'][:,pose_ind]), 0, 1))
                 self.node_idx += 1
             else:
                 to_node_idx = j
-                if self.log:
-                    print 'edge from {} to {}={}'.format(node_id, j, np.clip(np.max(metadata['vertex_probs'][:,pose_ind]), 0, 1))
-                #self.G.add_edge(node_id, j)
+            if self.log:
+                print 'edge from {} to {}={}'.format(node_id, to_node_idx, np.clip(np.max(metadata['vertex_probs'][:,pose_ind]), 0, 1))
             self.G.add_edge(node_id, to_node_idx)
             edge_alphas.append(np.clip(np.max(metadata['vertex_probs'][:,pose_ind]), 0, 1))
         return edge_alphas
 
-    def add_all_nodes(self, node_id, metadata, check_duplicates=True):
+    def add_all_nodes(self, node_id, metadata, planning_time, check_duplicates=True):
         """
         """
+        self.G.nodes[node_id]['planning_time'] = planning_time
         edge_alphas = []
         vertex_probs = metadata['vertex_probs']
         metadata_to_graph_mapping = []
@@ -313,6 +300,8 @@ class MultiTopplePolicy(TopplePolicy):
                         q_value += self.gamma * transition_prob * next_state['value']
                     if q_value > node['value'] * 1.05:
                         unchanged = False
+                    if node['value'] == 0:
+                        node['single_push_q'] = q_value
                     node['value'] = q_value
                     #sys.exit()
             if self.log:
@@ -320,7 +309,9 @@ class MultiTopplePolicy(TopplePolicy):
             if unchanged:
                 break
         if self.log:
-            print 'gq', self.G.nodes('gq'), '\n\n'
+            print 'gq', self.G.nodes('gq'), '\n'
+            print 'planning_time', self.G.nodes('planning_time'), '\n'
+            print 'single_push_q', self.G.nodes('single_push_q'), '\n\n'
 
     def action(self, state):
         """
@@ -335,14 +326,22 @@ class MultiTopplePolicy(TopplePolicy):
         policy_start = time()
         orig_pose = deepcopy(state.T_obj_world)
 
+        planning_start = time()
         original_action_metadata = self.topple_action(state)
+        planning_time = time() - planning_start
 
         self.G = nx.DiGraph()
         current_quality = original_action_metadata['current_quality']
-        self.G.add_node(0, pose=state.T_obj_world, gq=current_quality, value=current_quality, node_type='state')
+        self.G.add_node(
+            0, 
+            pose=state.T_obj_world, 
+            gq=current_quality, 
+            value=current_quality, 
+            node_type='state'
+        )
         self.node_idx = 1
         self.action_node_idx = 1000
-        self.edge_alphas = add_nodes(0, original_action_metadata, check_duplicates=False)
+        self.edge_alphas = add_nodes(0, original_action_metadata, planning_time, check_duplicates=False)
 
         nodes = iter(self.G.nodes(data=True))
         already_visited = [0]
@@ -358,8 +357,12 @@ class MultiTopplePolicy(TopplePolicy):
             if self.log:
                 print '\nPose Ind: {}'.format(node_id)
             state.obj.T_obj_world = node['pose']
+
+            planning_start = time()
             metadata = self.topple_action(state)
-            new_edge_alphas = add_nodes(node_id, metadata)
+            planning_time = time() - planning_start
+            
+            new_edge_alphas = add_nodes(node_id, metadata, planning_time)
             self.edge_alphas.extend(new_edge_alphas)
             nodes = iter(self.G.nodes(data=True))
             already_visited.append(node_id)
@@ -369,4 +372,4 @@ class MultiTopplePolicy(TopplePolicy):
         #print self.edge_alphas
         state.obj.T_obj_world = orig_pose
         print 'Total Policy Time:', time() - policy_start
-        return None
+        return time() - policy_start

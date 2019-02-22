@@ -107,6 +107,41 @@ def quit():
     kill_stream()
     sys.exit()
 
+def real_to_sim_tf(vis=False):
+    update_stream('tmp.png')
+    response = ''
+    try:
+        while response != 'r' and response != 'y' and response != 'q':
+            response = utils.keyboard_input('Press \'y\' when part is aligned, \'r\' to reset camera, \'s\' to skip pose, \'q\' to quit:')
+            if response == 'r':
+                reset_stream_usb()
+                update_stream('tmp.png')
+                response = ''
+        kill_stream()
+        if response == 'q':
+            quit()
+    except Exception as e:
+        print 'Something went wrong'
+        quit()
+
+    # Capture point cloud from physical depth camera
+    _, depth_im, _ = phoxi_sensor.frames()
+    phys_point_cloud = phoxi_tf*phoxi_sensor.ir_intrinsics.deproject(depth_im)
+    phys_point_cloud_masked, _ = phys_point_cloud.box_mask(mask_box)
+    if phys_point_cloud_masked.num_points == 0:
+        logging.warn('Object not found! Skipping...')
+        quit()
+    
+    pcs_config = {'overlap': 0.6, 'accuracy': 0.001, 'samples': 300, 'timeout': 5, 'cache_dir': '/home/mjd3/working/Super4PCS/cache'}
+    pcs_aligner = Super4PCSAligner(pcs_config)
+    real_to_sim_tf = pcs_aligner.align(sim_point_cloud_masked, phys_point_cloud_masked)
+    if vis:
+        vis3d.figure()
+        vis3d.points((sim_point_cloud).data.T, color=(1,0,0))
+        vis3d.points(real_to_sim*phys_point_cloud_masked.data.T, color=(0,1,0))
+        vis3d.show()
+    return real_to_sim_tf
+
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        '..',
@@ -190,18 +225,13 @@ if __name__ == '__main__':
     sim_point_cloud = phoxi_tf*phoxi.intrinsics.deproject(wrapped_depth[0])
     sim_point_cloud_masked, _ = sim_point_cloud.box_mask(mask_box)
 
-    update_stream('tmp.png')
-    response = ''
-    try:
-        while response != 'r' and response != 'y' and response != 'q':
-            response = utils.keyboard_input('Press \'y\' when part is aligned, \'r\' to reset camera, \'s\' to skip pose, \'q\' to quit:')
-            if response == 'r':
-                reset_stream_usb()
-                update_stream('tmp.png')
-                response = ''
-        kill_stream()
-        if response == 'q':
-            quit()
-    except Exception as e:
-        print 'Something went wrong'
-        quit()
+
+
+
+
+    # Plan topple action
+    env.state.obj.T_obj_world = real_to_sim_tf()*env.state.obj.T_obj_world
+    action = policy.action(env.state, env)
+
+    # Execute action
+    phys_robot.execute(action)

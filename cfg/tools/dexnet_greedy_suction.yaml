@@ -13,12 +13,16 @@ policy:
 
     #database_path: /nfs/diskstation/db/toppling.hdf5
     #object_keys:
-    #  mini_dexnet: all
+    # mini_dexnet: all
+    # adversarial: all
     
-
-    database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
+    database_path: /nfs/diskstation/db/toppling2.hdf5
     object_keys:
-      adversarial: all
+      mini_dexnet: all
+
+    #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
+    #object_keys:
+    #  adversarial: all
 
     #database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
     #object_keys:

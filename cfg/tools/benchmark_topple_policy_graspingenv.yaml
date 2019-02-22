@@ -1,7 +1,7 @@
 # general params
 steps_per_test_case: 2
 rollouts_per_garbage_collect: 10
-debug: 0 
+debug: 1
 
 # policy params
 fully_observed: 1
@@ -13,11 +13,14 @@ policy:
     thresh: 0.15
     log: 0
   model_params:
-    ground_friction_coeff: 0.3
     fraction_before_short_circuit: 0.4
     num_approx: 30
-    finger_sigma: 0.00125
-    friction_sigma: .033333
+    
+    ground_friction_coeff: 0.25
+    friction_sigma: .1
+    
+    finger_sigma: 0.0007
+    push_direction_sigma: .07
     n_trials: 10
     max_force: 400 # 10x the average for gearbox
     log: 0
@@ -344,18 +347,7 @@ state_space:
       - 0.1
       - 0.15
 
-  object:
-    #database_path: /nfs/diskstation/db/dexnet_4.hdf5
-    #object_keys:
-    #  # thingiverse: all
-    #  # thingiverse-packaged: all
-    #  #kit: all
-    #    #- CatSitting_800_tex # pose 0
-    #  #3dnet: all
-    #  big-kit:
-    #    - Fish_800_tex
-    #  # big-3dnet: all
-
+  object: 
     # database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
     # object_keys:
     #  mini_dexnet:
@@ -373,23 +365,29 @@ state_space:
     #    #- turbine_housing
     #    #- vase # pose 7
 
-    database_path: /nfs/diskstation/db/toppling.hdf5
+    #database_path: /nfs/diskstation/db/toppling.hdf5
+    #object_keys:
+     #mini_dexnet:
+       #- gearbox # pose 0
+       # - vase
+       #- pawn # pose 8
+       # - pipe_connector
+       # - endstop_holder
+       # - part3
+       # - bar_clamp
+     #adversarial:
+     #  - yoda # pose 4
+
+    database_path: /nfs/diskstation/db/toppling2.hdf5
     object_keys:
       mini_dexnet:
-        - gearbox # pose 0
-        # - vase
-        #- pawn # pose 8
-        # - pipe_connector
-        # - endstop_holder
-        # - part3
-        # - bar_clamp
-      #adversarial:
-      #  - yoda # pose 4
-      #ycb:
-      #  #- b_cups
-      #  #- medium_clamp # pose 2
-      #  - padlock
-
+    #    - gearbox_scaled # pose 1
+        - yoda # pose 6
+    #    - vase
+    #    - pipe_connector
+    #    - pawn
+    #    - bar_clamp
+      
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:
     #  adversarial:

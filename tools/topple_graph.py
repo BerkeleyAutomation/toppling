@@ -110,5 +110,5 @@ if __name__ == '__main__':
 
     policy.set_environment(env.environment)
     policy.action(env.state)
-    show_graph(policy.G, policy.edge_alphas)
-    #new_graph(policy.G)
+    #show_graph(policy.G, policy.edge_alphas)
+    new_graph(policy.G)

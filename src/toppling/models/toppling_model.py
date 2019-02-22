@@ -4,7 +4,7 @@ import math
 from copy import deepcopy
 from time import time
 
-from autolab_core import RigidTransform
+from autolab_core import RigidTransform, Point
 from toppling import normalize, stable_pose, is_equivalent_pose, up
 
 class TopplingModel():
@@ -22,6 +22,7 @@ class TopplingModel():
         self.num_approx = config['num_approx']
         self.finger_sigma = config['finger_sigma'] # noise for finger position
         self.friction_sigma = config['friction_sigma']
+        self.push_direction_sigma = config['push_direction_sigma']
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
         self.max_force = config['max_force']
         self.log = config['log']
@@ -42,9 +43,9 @@ class TopplingModel():
         self.obj = obj
         self.mesh = obj.mesh.copy().apply_transform(obj.T_obj_world.matrix)
         self.mesh.fix_normals()
-        #self.com = self.mesh.center_mass
-        self.com = obj.T_obj_world.translation
-        #self.com = np.mean(self.mesh.vertices, axis=0)
+        self.com = self.mesh.center_mass
+        # self.com = obj.T_obj_world.translation
+        # self.com = np.mean(self.mesh.vertices, axis=0)
         self.mass = 1
        
         # Finding toppling edge
@@ -221,8 +222,10 @@ class TopplingModel():
         """
         vertices = np.repeat(vertices, n_trials, axis=0)
         normals = np.repeat(normals, n_trials, axis=0)
-        push_directions = np.repeat(push_directions, n_trials, axis=0)# + np.random.normal(scale=.1, size=[len(push_directions)*n_trials, 3])
-        
+        push_directions = np.repeat(push_directions, n_trials, axis=0) \
+            + np.random.normal(scale=self.push_direction_sigma, size=[len(push_directions)*n_trials, 3])
+        push_directions = normalize(push_directions, axis=1)
+
         a = time()
         # # Add noise and find the new intersection location
         # vertices_copied = deepcopy(vertices)
@@ -230,7 +233,7 @@ class TopplingModel():
         # # ray_origins = vertices + np.random.normal(scale=sigma, size=vertices.shape) + .01 * normals
         # vertices, _, face_ind = mesh.ray.intersects_location(ray_origins, -normals, multiple_hits=False)
         for i in range(len(vertices)):
-            ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .01 * normals[i]
+            ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
             intersect, _, face_ind = \
                 self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
             if len(face_ind) == 0:
@@ -244,7 +247,20 @@ class TopplingModel():
             print 'noise time:', time() - a
         return vertices, normals, push_directions, friction_noises
 
-    def map_edge_to_pose(self, edges):
+    def tipping_point_rotations(self):
+        tipping_point_rotations = []
+        for edge, (edge_point1, edge_point2) in enumerate(self.edge_points):
+            com_projected_on_edge = self.com_projected_on_edges[edge]
+            s = normalize(edge_point2 - edge_point1)
+            
+            x = normalize(com_projected_on_edge - self.com)
+            y = -normalize(np.cross(x, up))
+            a = .2 if self.obj.key == "mini_dexnet~yoda" else .01
+            topple_angle = math.acos(np.dot(x, -up)) + a#.01
+            tipping_point_rotations.append(RigidTransform.rotation_from_axis_and_origin(y, edge_point1, topple_angle))
+        return tipping_point_rotations
+
+    def map_edge_to_pose(self, edges, tipping_point_rotations):
         """
         returns a list of poses that the object would end up in if toppled along each edge
 
@@ -253,17 +269,9 @@ class TopplingModel():
         :obj:`list` of :obj:`RigidTransform`
         """
         current_pose = self.obj.T_obj_world
-        tipping_point_rotations, final_poses = [], []
+        final_poses = []
         for edge in edges:
-            edge_point1, edge_point2 = self.edge_points[edge]
-            com_projected_on_edge = self.com_projected_on_edges[edge]
-            s = normalize(edge_point2 - edge_point1)
-            
-            x = normalize(com_projected_on_edge - self.com)
-            y = -normalize(np.cross(x, up))
-            topple_angle = math.acos(np.dot(x, -up)) + .01
-            tipping_point_rotations.append(RigidTransform.rotation_from_axis_and_origin(y, edge_point1, topple_angle))
-            R_initial = tipping_point_rotations[-1].dot(self.obj.T_obj_world)
+            R_initial = tipping_point_rotations[edge].dot(self.obj.T_obj_world)
 
             # before the object settles
             initial_rotated_mesh = self.mesh.copy().apply_transform(R_initial.matrix)
@@ -273,11 +281,12 @@ class TopplingModel():
             if True:
                 resting_pose = self.obj.obj.resting_pose(R_initial)
                 final_poses.append(resting_pose)
+                # final_poses.append(R_initial)
             else:
                 # object would rotate back onto original stable pose
                 # (assuming finger doesn't keep pushing)
                 final_poses.append(current_pose)
-        return tipping_point_rotations, final_poses
+        return final_poses
 
     def combine_equivalent_poses(self, final_poses, vertex_probs):
         """
@@ -319,6 +328,22 @@ class TopplingModel():
         vertex_probs = \
             np.hstack([np.sum(vertex_probs[:,edges], axis=1).reshape(-1,1) for edges in grouped_edges])
         return grouped_poses, vertex_probs
+
+    def finger_slips(self, push_direction, normal, noise, tipping_point_rotation):
+        def finger_slip_helper(normal):
+            parallel_component = push_direction.dot(-normal)
+            #perpend_component = np.linalg.norm(push_direction - normal*parallel_component)
+            perpend_component = math.sqrt(1-min(parallel_component**2,1))
+            # Finger slips before even starting a rotation
+            #return parallel_component / (perpend_component + 1e-5) <= 1/(noise * self.ground_friction_coeff)
+            return perpend_component / (parallel_component + 1e-5) >= noise * self.ground_friction_coeff
+
+        if finger_slip_helper(normal):
+            return True
+        new_normal = (tipping_point_rotation * Point(normal, 'world')).data
+        if finger_slip_helper(new_normal):
+            return True
+        return False
         
     def predict(self, vertices, normals, push_directions, use_sensitivity=True):
         """
@@ -344,6 +369,8 @@ class TopplingModel():
                 push_directions, 
                 n_trials
             )
+
+        tipping_point_rotations = self.tipping_point_rotations()
                     
         # Check whether each push point topples or not
         vertex_probs = [] # probability of toppling over each edge
@@ -375,18 +402,18 @@ class TopplingModel():
                     (edge_point1, edge_point2), 
                     com_projected_on_edge,
                     max_moment, 
-                    max_tangential_force
+                    max_tangential_force,
+                    tipping_point_rotation
                 ) in zip(
                     range(len(self.edge_points)),
                     self.edge_points, 
                     self.com_projected_on_edges, 
                     self.max_moments, 
-                    self.max_tangential_forces
+                    self.max_tangential_forces,
+                    tipping_point_rotations
                 ):
                     # Finding if finger slips on object (Condition 1)
-                    parallel_component = push_direction.dot(-normal)
-                    perpend_component = np.linalg.norm(push_direction + normal*parallel_component)
-                    if parallel_component / (perpend_component + 1e-5) <= noise * self.ground_friction_coeff:
+                    if self.finger_slips(push_direction, normal, noise, tipping_point_rotation):
                         continue
 
                     # finding required force to topple
@@ -441,7 +468,7 @@ class TopplingModel():
         a = time()
         non_zero_edges = np.arange(len(self.edge_points))[np.sum(vertex_probs, axis=0) != 0]
         vertex_probs = vertex_probs[:,non_zero_edges]
-        _, self.final_poses = self.map_edge_to_pose(non_zero_edges)
+        self.final_poses = self.map_edge_to_pose(non_zero_edges, tipping_point_rotations)
         if self.log:
             print 'pose time', time() - a
 

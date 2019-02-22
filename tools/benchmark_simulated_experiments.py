@@ -3,12 +3,13 @@ import numpy as np
 import os
 import colorsys
 import random
+import logging
+from time import time
 
 from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv
-#from dexnet.visualization import DexNetVisualizer3D as vis3d
-from ambicore.visualization import Visualizer3D as vis3d
+from dexnet.visualization import DexNetVisualizer3D as vis3d
 from toppling.policies import SingleTopplePolicy, MultiTopplePolicy
 from toppling import is_equivalent_pose, camera_pose
 
@@ -20,17 +21,17 @@ def render_3d_scene(env):
             env.state.T_obj_world.matrix,
             color=env.state.color)
 
-def forward_sim(G):
+def forward_sim(G, policy_name, value):
     curr_node_id = 0
     curr_node = G.nodes[curr_node_id]
-    print 'Original Quality', curr_node['gq']
-    print 'Path: 0', 
+    logger.info(policy_name + ' Original Quality: '+str(curr_node['gq']))
+    path = [0]
     while True:
         best_action, best_q = None, 0
         for action_id in G.neighbors(curr_node_id):
             action = G.nodes[action_id]
-            if action['value'] > best_q:
-                best_q = action['value']
+            if action[value] > best_q:
+                best_q = action[value]
                 best_action = action_id
         if best_q <= curr_node['gq']:
             break
@@ -40,8 +41,9 @@ def forward_sim(G):
         probs = map(lambda prob: prob['prob'], probs)
         curr_node_id = np.random.choice(next_state_ids, p=probs)
         curr_node = G.nodes[curr_node_id]
-        print curr_node_id,
-    print '\nFinal Quality', curr_node['gq'], '\n'
+        path.append(curr_node_id)
+    logger.info(policy_name + ' Final Quality: '+str(curr_node['gq']))
+    return path
 
 def test_multi_push(env):
     env = GraspingEnv(config, config['vis'])
@@ -53,10 +55,25 @@ def test_multi_push(env):
         
         if args.before:
             vis3d.figure()
-            render_3d_scene(env)
+            env.render_3d_scene()
             vis3d.show(starting_camera_pose=CAMERA_POSE)
-        action = policy.action(env.state)
-        forward_sim(policy.G)
+        planning_time = policy.action(env.state)
+        logger.info(env.state.obj.key)
+        logger.info('Value Iteration')
+        path = forward_sim(policy.G, 'Value Iteration', 'value')
+        logger.info('Value Iteration Path: '+str(path))
+        logger.info('Value Iteration Path Length: '+str(len(path) - 1))
+        logger.info('Value Iteration Planning Time: '+str(planning_time))
+        logger.info('Value Iteration No Actions: '+str(len(policy.G.nodes()) == 1))
+        logger.info('Value Iteration Already Best: '+str(len(policy.G.nodes()) > 1 and len(path) == 1))
+        logger.info('Greedy')
+        path = forward_sim(policy.G, 'Greedy', 'single_push_q')
+        logger.info('Greedy Path: '+str(path))
+        logger.info('Greedy Path Pength: '+str(len(path) - 1))
+        logger.info('Greedy Planning Time: '+str(np.sum([policy.G.nodes[node_id]['planning_time'] for node_id in path])))
+        logger.info('Greedy No Actions: '+str(len(policy.G.nodes()) == 1))
+        logger.info('Greedy Already Best: '+str((len(policy.G.nodes()) > 1 and len(path) == 1)))
+        logger.info('\n')
 
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -66,6 +83,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Rollout a policy for bin picking in order to evaluate performance')
     parser.add_argument('--config_filename', type=str, default=default_config_filename, help='configuration file to use')
     parser.add_argument('--before', action='store_true', help='Whether to show the object before the action')
+    parser.add_argument('-logfile', type=str, default='/home/chriscorrea14/toppling_simulated'+str(int(time()))+'.log')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -75,6 +93,10 @@ if __name__ == '__main__':
     if config['debug']:
         random.seed(SEED)
         np.random.seed(SEED)
+    logger = logging.getLogger('toppling')
+    hdlr = logging.FileHandler(args.logfile)
+    logger.addHandler(hdlr)
+    logger.setLevel(logging.INFO)
 
     env = GraspingEnv(config, config['vis'])
     test_multi_push(env)

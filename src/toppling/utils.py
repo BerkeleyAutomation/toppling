@@ -67,5 +67,5 @@ def camera_pose():
                            [0,1,0],
                            [s,0,c]]).dot(CAMERA_ROT)
     CAMERA_TRANS = np.array([-.25,-.25,.35])
-    CAMERA_TRANS = np.array([-.4,0,.3])
+    CAMERA_TRANS = 1.5*np.array([-.4,0,.3])
     return RigidTransform(CAMERA_ROT, CAMERA_TRANS, from_frame='camera', to_frame='world')
