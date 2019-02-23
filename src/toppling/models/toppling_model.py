@@ -17,12 +17,16 @@ class TopplingModel():
         obj : :obj:`GraspableObject3D`
             object to load
         """
-        self.ground_friction_coeff = config['ground_friction_coeff']
         self.fraction_before_short_circuit = config['fraction_before_short_circuit']
         self.num_approx = config['num_approx']
+        
+        self.ground_friction_coeff = config['ground_friction_coeff']
+        self.ground_friction_sigma = config['ground_friction_sigma']
+        self.finger_friction_coeff = config['finger_friction_coeff']
+        self.finger_friction_sigma = config['finger_friction_sigma']
+        
         self.finger_sigma = config['finger_sigma'] # noise for finger position
-        self.friction_sigma = config['friction_sigma']
-        self.push_direction_sigma = config['push_direction_sigma']
+        self.push_direction_sigma = config['push_direction_sigma'] # noise for push direction
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
         self.max_force = config['max_force']
         self.log = config['log']
@@ -236,16 +240,19 @@ class TopplingModel():
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
             intersect, _, face_ind = \
                 self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
-            if len(face_ind) == 0:
+            _, _, back_face_ind = \
+                self.mesh.ray.intersects_location([ray_origin], [normals[i]], multiple_hits=False)
+            if len(face_ind) == 0 or len(back_face_ind) != 0:
                 vertices[i] = np.array([0,0,0])
                 normals[i] = np.array([0,0,0])
             else:
                 vertices[i] = intersect[0]
                 normals[i] = self.mesh.face_normals[face_ind[0]]
-        friction_noises = 1 + np.random.normal(scale=self.friction_sigma, size=len(vertices)) / self.ground_friction_coeff
+        ground_friction_noises = 1 + np.random.normal(scale=self.ground_friction_sigma, size=len(vertices)) / self.ground_friction_coeff
+        finger_friction_noises = 1 + np.random.normal(scale=self.finger_friction_sigma, size=len(vertices)) / self.finger_friction_coeff
         if self.log:
             print 'noise time:', time() - a
-        return vertices, normals, push_directions, friction_noises
+        return vertices, normals, push_directions, ground_friction_noises, finger_friction_noises
 
     def tipping_point_rotations(self):
         tipping_point_rotations = []
@@ -329,14 +336,14 @@ class TopplingModel():
             np.hstack([np.sum(vertex_probs[:,edges], axis=1).reshape(-1,1) for edges in grouped_edges])
         return grouped_poses, vertex_probs
 
-    def finger_slips(self, push_direction, normal, noise, tipping_point_rotation):
+    def finger_slips(self, push_direction, normal, finger_friction_noise, tipping_point_rotation):
         def finger_slip_helper(normal):
             parallel_component = push_direction.dot(-normal)
             #perpend_component = np.linalg.norm(push_direction - normal*parallel_component)
             perpend_component = math.sqrt(1-min(parallel_component**2,1))
             # Finger slips before even starting a rotation
-            #return parallel_component / (perpend_component + 1e-5) <= 1/(noise * self.ground_friction_coeff)
-            return perpend_component / (parallel_component + 1e-5) >= noise * self.ground_friction_coeff
+            #return parallel_component / (perpend_component + 1e-5) <= 1/(finger_friction_noise * self.finger_friction_coeff)
+            return perpend_component / (parallel_component + 1e-5) >= finger_friction_noise * self.finger_friction_coeff
 
         if finger_slip_helper(normal):
             return True
@@ -363,7 +370,13 @@ class TopplingModel():
         n_trials = 1
         if use_sensitivity:
             n_trials = self.n_trials
-            vertices, normals, push_directions, friction_noises = self.add_noise(
+            (
+                vertices, 
+                normals, 
+                push_directions, 
+                ground_friction_noises, 
+                finger_friction_noises
+            )  = self.add_noise(
                 vertices, 
                 normals, 
                 push_directions, 
@@ -383,7 +396,8 @@ class TopplingModel():
             vertex = vertices[i]
             normal = normals[i]
             push_direction = push_directions[i]
-            noise = friction_noises[i] if use_sensitivity else 1
+            finger_friction_noise = finger_friction_noises[i] if use_sensitivity else 1
+            ground_friction_noise = ground_friction_noises[i] if use_sensitivity else 1
             vertex_forces = []
             
             # elif vertex[2] < self.thresh or i % n_trials == int(n_trials * fraction_before_short_circuit):
@@ -413,7 +427,7 @@ class TopplingModel():
                     tipping_point_rotations
                 ):
                     # Finding if finger slips on object (Condition 1)
-                    if self.finger_slips(push_direction, normal, noise, tipping_point_rotation):
+                    if self.finger_slips(push_direction, normal, finger_friction_noise, tipping_point_rotation):
                         continue
 
                     # finding required force to topple
@@ -439,9 +453,9 @@ class TopplingModel():
                     finger_friction_moment = self.finger_friction_moment(f_z, edge_point1, edge_point2)
 
                     if ( # Condition 2
-                        (f_x / (noise * max_tangential_force + self.ground_friction_coeff * f_z+1e-5))**2 + 
-                        (f_y / (noise * max_tangential_force + self.ground_friction_coeff * f_z+1e-5))**2 + 
-                        (induced_torque / (noise * max_moment + finger_friction_moment))**2 < 1
+                        (f_x / (ground_friction_noise * max_tangential_force + self.ground_friction_coeff * f_z+1e-5))**2 + 
+                        (f_y / (ground_friction_noise * max_tangential_force + self.ground_friction_coeff * f_z+1e-5))**2 + 
+                        (induced_torque / (ground_friction_noise * max_moment + finger_friction_moment))**2 < 1
                     ):
                         min_required_force = required_force
                         topple_edge = curr_edge
