@@ -18,12 +18,12 @@ policy:
     
     ground_friction_coeff: 0.25
     ground_friction_sigma: .1
-    finger_friction_coeff: 0.6
+    finger_friction_coeff: 0.8
     finger_friction_sigma: .2
     
     finger_sigma: 0.0007
     push_direction_sigma: .07
-    n_trials: 1
+    n_trials: 100
     max_force: 400 # 10x the average for gearbox
     log: 0
 
@@ -367,28 +367,30 @@ state_space:
     #    #- turbine_housing
     #    #- vase # pose 7
 
-    #database_path: /nfs/diskstation/db/toppling.hdf5
-    #object_keys:
-     #mini_dexnet:
-       #- gearbox # pose 0
-       # - vase
-       #- pawn # pose 8
-       # - pipe_connector
-       # - endstop_holder
-       # - part3
-       # - bar_clamp
-     #adversarial:
+    # database_path: /nfs/diskstation/db/toppling.hdf5
+    # object_keys:
+    #  mini_dexnet:
+    #    # - gearbox # pose 0
+    #    # - vase
+    #    # - pawn # pose 8
+    #    - pipe_connector
+    #    # - endstop_holder
+    #    # - part3
+    #    # - bar_clamp
+     # adversarial:
      #  - yoda # pose 4
 
     database_path: /nfs/diskstation/db/toppling2.hdf5
     object_keys:
       mini_dexnet:
         # - gearbox_scaled # pose 1
-        - yoda # pose 6
-    #    - vase
-    #    - pipe_connector
-    #    - pawn
-    #    - bar_clamp
+        # - yoda # pose 6
+        # - vase
+        # - pipe_connector
+        # - pawn
+        # - bar_clamp
+        # - mount1
+        - endstop_holder
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:

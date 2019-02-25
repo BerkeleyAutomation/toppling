@@ -237,6 +237,11 @@ class TopplingModel():
         # # ray_origins = vertices + np.random.normal(scale=sigma, size=vertices.shape) + .01 * normals
         # vertices, _, face_ind = mesh.ray.intersects_location(ray_origins, -normals, multiple_hits=False)
         for i in range(len(vertices)):
+            # Predicted to hit ground
+            if normals[i].dot(up) > .5 and vertices[i][2] < .05:
+                vertices[i] = np.array([0,0,0])
+                normals[i] = np.array([0,0,0])
+                continue
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
             intersect, _, face_ind = \
                 self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)

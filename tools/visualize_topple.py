@@ -9,7 +9,6 @@ from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv
 from dexnet.visualization import DexNetVisualizer3D as vis3d
-# from ambicore.visualization import Visualizer3D as vis3d
 from toppling.policies import SingleTopplePolicy, MultiTopplePolicy
 from toppling import is_equivalent_pose, camera_pose, normalize, up
 import trimesh
@@ -364,7 +363,7 @@ if __name__ == '__main__':
     #figure_1()
     #figure_2()
     #figure_3()
-    figure_0()
+    # figure_0()
     action = policy.action(env.state, env)
     #noise_vis()
 
@@ -391,17 +390,6 @@ if __name__ == '__main__':
         for bottom_point in action.metadata['bottom_points']:
            vis3d.points(Point(bottom_point, 'world'), scale=.001, color=[0,0,0])
         display_or_save('{}_topple_probs.gif'.format(obj_name))
-        #vis3d.figure(bg_color=[0,0,0,0])
-        # vis3d.mesh(env.state.mesh,
-        #     env.state.T_obj_world.matrix,
-        #     color=env.state.color)
-
-        # for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
-        #     color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
-        #     vis3d.points(vertex, radius=.001, color=color)
-        # for bottom_point in action.metadata['bottom_points']:
-        #     vis3d.points(bottom_point, radius=.001, color=[0,0,0])
-        # display_or_save('{}_topple_probs.gif'.format(obj_name))
 
     if True:
         vertex_probs = action.metadata['vertex_probs']
@@ -417,16 +405,6 @@ if __name__ == '__main__':
                     vis3d.points(Point(vertex, 'world'), scale=scale, color=color)
             vis3d.points(Point(policy.toppling_model.com, 'world'), scale=.001, color=[0,0,1])
             display_or_save('{}_edge_{}_topple_probs.gif'.format(obj_name, edge))
-        # vertex_probs = action.metadata['vertex_probs']
-        # for edge in range(1,vertex_probs.shape[1]):
-        #     vis3d.figure()
-        #     render_3d_scene(env)
-        #     curr_edge_probs = vertex_probs[:,edge]
-        #     for vertex, prob in zip(action.metadata['vertices'], curr_edge_probs):
-        #         if prob > 0:
-        #             color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
-        #             vis3d.points(vertex, radius=.001, color=color)
-        #     display_or_save('{}_edge_{}_topple_probs.gif'.format(obj_name, edge))
 
     if args.quality:
         vis3d.figure()
