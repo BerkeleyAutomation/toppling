@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 import math
+import json
 from copy import deepcopy
 from time import time
 
-from autolab_core import RigidTransform, Point
-from toppling import normalize, stable_pose, is_equivalent_pose, up
+from autolab_core import RigidTransform, PointCloud, Point, TensorDataset
+from toppling import normalize, stable_pose, pose_diff, is_equivalent_pose, up
 
 class TopplingModel():
     def __init__(self, config, obj=None):
@@ -496,4 +497,52 @@ class TopplingModel():
         grouped_poses, vertex_probs = self.combine_equivalent_poses(self.final_poses, vertex_probs)
         return grouped_poses, vertex_probs, np.array(min_required_forces)
         #return self.final_poses, vertex_probs, np.array(min_required_forces)
-        
+
+class TopplingDatasetModel():
+    def __init__(self, dataset_name):
+        self.dataset = TensorDataset.open(dataset_name)
+        with open(dataset_name+"/obj_ids.json", "r") as read_file:
+            self.obj_ids = json.load(read_file)
+        print self.obj_ids
+
+    def load_object(self, state):
+        self.obj = state.obj
+        self.datapoint = None
+        similarity = np.inf
+        for i in range(self.dataset.num_datapoints):
+            datapoint = self.dataset.datapoint(i)
+            print 'id', datapoint['obj_id']
+            if self.obj_ids[self.obj.key] != datapoint['obj_id']:
+                continue
+
+            rot, trans = RigidTransform.rotation_and_translation_from_matrix(datapoint['obj_pose'])
+            obj_pose = RigidTransform(rot, trans, 'obj', 'world')
+            pose_diff_val = pose_diff(obj_pose, self.obj.T_obj_world)
+            if pose_diff_val < similarity:
+                self.datapoint = datapoint
+                similarity = pose_diff_val
+        if self.datapoint == None:
+            raise ValueError('Object {} not in database'.format(self.obj.key))
+
+    def predict(self):
+        rot, trans = RigidTransform.rotation_and_translation_from_matrix(self.datapoint['obj_pose'])
+        dataset_pose = RigidTransform(rot, trans, 'obj', 'world')
+        dataset_final_poses = self.datapoint['final_poses']
+        num_vertices = self.datapoint['num_vertices']
+        final_poses = []
+        for i in range(20):
+            final_pose_mat = dataset_final_poses[i*4:(i+1)*4]
+            if np.array_equal(final_pose_mat, np.zeros((4,4))):
+                break
+            rot, trans = RigidTransform.rotation_and_translation_from_matrix(final_pose_mat)
+            final_poses.append(RigidTransform(rot, trans, 'obj', 'world'))
+        vertices = self.datapoint['vertices'][:num_vertices]
+        normals = self.datapoint['normals'][:num_vertices]
+        vertices = (self.obj.T_obj_world * dataset_pose.inverse() * PointCloud(vertices.T, 'world')).data.T
+        normals = (self.obj.T_obj_world * dataset_pose.inverse() * PointCloud(normals.T, 'world')).data.T
+
+
+        vertex_probs = self.datapoint['vertex_probs'][:num_vertices, :len(final_poses)]
+        required_forces = self.datapoint['min_required_forces'][:num_vertices]
+
+        return vertices, normals, final_poses, vertex_probs, required_forces

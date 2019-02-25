@@ -38,6 +38,23 @@ def stable_pose(R):
         R = R.matrix
     return StablePose(0, R, eq_thresh=.03, to_frame='world')
 
+def pose_diff(R1, R2):
+    """
+    Returns difference between two stable poses
+
+    Parameters
+    ----------
+    R1 : :obj:`autolab_core.RigidTransform`
+    R2 : :obj:`autolab_core.RigidTransform`
+
+    Returns
+    -------
+    int
+    """
+    z1 = R1.inverse().matrix[:,2]
+    z2 = R2.inverse().matrix[:,2]
+    return np.linalg.norm(z1 - z2)
+
 def is_equivalent_pose(R1, R2):
     """
     Returns whether the two RigidTransforms are equivalent stable poses
@@ -51,9 +68,7 @@ def is_equivalent_pose(R1, R2):
     -------
     bool
     """
-    z1 = R1.inverse().matrix[:,2]
-    z2 = R2.inverse().matrix[:,2]
-    diff = np.linalg.norm(z1 - z2)
+    diff = pose_diff(R1, R2)
     return -.1 < diff and diff < .1
 
 def camera_pose():
