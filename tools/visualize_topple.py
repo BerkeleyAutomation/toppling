@@ -23,19 +23,6 @@ pastel_orange = np.array([248,184,139])/255.0
 pastel_blue = np.array([178,206,254])/255.0
 light_blue = np.array([0.67843137, 0.84705882, 0.90196078])
 
-def render_3d_scene(env):
-    print env.state.T_obj_world.matrix
-    vis3d.mesh(env.state.mesh,
-            env.state.T_obj_world.matrix,
-            color=env.state.color)
-
-def gripper(gripper, grasp, T_ref_world=RigidTransform(), color=(0.5, 0.5, 0.5)):
-    T_gripper_ref = grasp.gripper_pose(gripper)
-    T_gripper_world = T_ref_world.as_frames(T_gripper_ref.to_frame, 'world') * T_gripper_ref
-    T_mesh_world = T_gripper_world * gripper.T_gripper_mesh.inverse()        
-    T_mesh_world = T_mesh_world.as_frames('obj', 'world')
-    vis3d.mesh(gripper.mesh, T_mesh_world, color=color)
-
 def vis_axes(origin, y_dir):
     y = [origin, origin + .0075*y_dir]
     z = [origin, origin + .0075*up]
@@ -62,7 +49,7 @@ def dotted_line(start, end):
 def figure_0():
     action = policy.action(env.state, env)
     env.render_3d_scene()
-    bottom_points = action.metadata['bottom_points']
+    bottom_points = policy.toppling_model.bottom_points
     vis3d.plot3d(bottom_points[:2], color=[0,0,0], tube_radius=.001)
 
     mesh = env.state.mesh.copy().apply_transform(env.state.T_obj_world.matrix)
@@ -311,7 +298,7 @@ if __name__ == '__main__':
     print '\n\nSaving to file' if args.save else '\n\nDisplaying in a window'
 
     config = YamlConfig(args.config_filename)
-    policy = SingleTopplePolicy(config['policy'], use_sensitivity=True)
+    policy = SingleTopplePolicy(config, use_sensitivity=True)
 
     if config['debug']:
         random.seed(SEED)
@@ -387,8 +374,8 @@ if __name__ == '__main__':
         for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
            color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
            vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
-        for bottom_point in action.metadata['bottom_points']:
-           vis3d.points(Point(bottom_point, 'world'), scale=.001, color=[0,0,0])
+        # for bottom_point in policy.toppling_model.bottom_points:
+        #    vis3d.points(Point(bottom_point, 'world'), scale=.001, color=[0,0,0])
         display_or_save('{}_topple_probs.gif'.format(obj_name))
 
     if True:

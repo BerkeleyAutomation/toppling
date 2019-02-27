@@ -1,1 +1,1 @@
-from policy import SingleTopplePolicy, MultiTopplePolicy
+from policy import SingleTopplePolicy, MultiTopplePolicy, TestTopplePolicy

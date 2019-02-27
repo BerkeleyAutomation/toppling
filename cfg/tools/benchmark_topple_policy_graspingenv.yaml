@@ -1,7 +1,7 @@
 # general params
 steps_per_test_case: 2
 rollouts_per_garbage_collect: 10
-debug: 1
+debug: 0
 
 # policy params
 fully_observed: 1
@@ -9,23 +9,26 @@ policy:
   type: toppling
   #grasping_policy_config_filename: cfg/tools/dexnet_greedy_parallel_jaw.yaml
   grasping_policy_config_filename: cfg/tools/dexnet_greedy_suction.yaml
-  policy_params:
-    thresh: 0.15
-    log: 0
-  model_params:
-    fraction_before_short_circuit: 0.4
-    num_approx: 30
-    
-    ground_friction_coeff: 0.25
-    ground_friction_sigma: .1
-    finger_friction_coeff: 0.8
-    finger_friction_sigma: .2
-    
-    finger_sigma: 0.0007
-    push_direction_sigma: .07
-    n_trials: 100
-    max_force: 400 # 10x the average for gearbox
-    log: 0
+  thresh: 0.15
+  log: 1
+
+model:
+  fraction_before_short_circuit: 0.4
+  num_approx: 30
+  
+  ground_friction_coeff: 0.25
+  ground_friction_sigma: .1
+  finger_friction_coeff: 0.6
+  finger_friction_sigma: .2
+  
+  finger_sigma: 0.0007
+  push_direction_sigma: .07
+  n_trials: 50
+  max_force: 400 # 10x the average for gearbox
+  log: 0
+
+  load: 0
+  dataset_name: /nfs/diskstation/db/toppling/mini_dexnet
 
 # ray params
 ray:
@@ -37,101 +40,129 @@ dataset:
   tensors:
     datapoints_per_file: 100
     fields:
-      # states
-      obj_poses:
-        dtype: float32
-      obj_coms:
-        dtype: float32
-      obj_ids:
+      obj_id:
         dtype: uint32
-      camera_poses:
-        dtype: float32
-        height: 7
-      camera_intrs:
-        dtype: float32
-        height: 7
-      robot_poses:
-        dtype: float32
-        height: 7
-
-      # observations
-      # color_ims:
-      #   dtype: uint8
-      #   channels: 3
-      # depth_ims:
-      #   dtype: float32
-      #   channels: 1
-
-      # actions
-      action_ids:
-        dtype: uint8
-      action_poses:
-        dtype: float32
-        height: 14
-
-      # rewards
-      rewards:
-        dtype: float32    
-      cleared_pile:
-        dtype: uint8
-
-      # metadata
-      timesteps:
-        dtype: uint32
-      policy_ids:
-        dtype: uint8
-      grasp_metrics:
-        dtype: float32
-      collisions:
-        dtype: uint8
-      collisions_with_env:
-        dtype: uint8
-      greedy_q_values:
-        dtype: float32
-      pred_q_values:
-        dtype: float32
-      grasped_obj_ids:
-        dtype: uint32
-      heap_ids:
-        dtype: uint32
-
-      # Singulation Metrics Data
-      parallel_jaw_best_q_value:
-        dtype: float32
-      suction_best_q_value:
-        dtype: float32
-      # parallel_jaw_best_q_value_single:
-      #   dtype: float32
-      # suction_best_q_value_single:
-      #   dtype: float32
-      singulated_obj_index:
-        dtype: uint8
-      parallel_jaw_grasped_obj_index:
-        dtype: uint8
-      suction_grasped_obj_index:
-        dtype: uint8
-      # parallel_jaw_mean_q_value:
-      #   dtype: float32
-      # suction_mean_q_value:
-      #   dtype: float32
-      # parallel_jaw_num_grasps:
-      #   dtype: float32
-      # suction_num_grasps:
-      #   dtype: float32
-      bin_distances:
-        dtype: float32
-      distance_matrix:
-        dtype: float32
-      T_begin_world:
+      obj_pose: 
         dtype: float32
         height: 4
         width: 4
-      T_end_world:
+      num_vertices:
+        dtype: uint32
+      vertices:
         dtype: float32
-        height: 4
+        height: 1000
+        width: 3
+      normals:
+        dtype: float32
+        height: 1000
+        width: 3
+      min_required_forces:
+        dtype: float32
+        height: 1000
+
+      vertex_probs:
+        dtype: float32
+        height: 1000
+        width: 20
+      final_poses:
+        dtype: float32
+        height: 80 # 20 possible * 4
         width: 4
-      # obj_index:
+      # # states
+      # obj_poses:
+      #   dtype: float32
+      # obj_coms:
+      #   dtype: float32
+      # obj_ids:
+      #   dtype: uint32
+      # camera_poses:
+      #   dtype: float32
+      #   height: 7
+      # camera_intrs:
+      #   dtype: float32
+      #   height: 7
+      # robot_poses:
+      #   dtype: float32
+      #   height: 7
+
+      # # observations
+      # # color_ims:
+      # #   dtype: uint8
+      # #   channels: 3
+      # # depth_ims:
+      # #   dtype: float32
+      # #   channels: 1
+
+      # # actions
+      # action_ids:
       #   dtype: uint8
+      # action_poses:
+      #   dtype: float32
+      #   height: 14
+
+      # # rewards
+      # rewards:
+      #   dtype: float32    
+      # cleared_pile:
+      #   dtype: uint8
+
+      # # metadata
+      # timesteps:
+      #   dtype: uint32
+      # policy_ids:
+      #   dtype: uint8
+      # grasp_metrics:
+      #   dtype: float32
+      # collisions:
+      #   dtype: uint8
+      # collisions_with_env:
+      #   dtype: uint8
+      # greedy_q_values:
+      #   dtype: float32
+      # pred_q_values:
+      #   dtype: float32
+      # grasped_obj_ids:
+      #   dtype: uint32
+      # heap_ids:
+      #   dtype: uint32
+
+      # # Singulation Metrics Data
+      # parallel_jaw_best_q_value:
+      #   dtype: float32
+      # suction_best_q_value:
+      #   dtype: float32
+      # # parallel_jaw_best_q_value_single:
+      # #   dtype: float32
+      # # suction_best_q_value_single:
+      # #   dtype: float32
+      # singulated_obj_index:
+      #   dtype: uint8
+      # parallel_jaw_grasped_obj_index:
+      #   dtype: uint8
+      # suction_grasped_obj_index:
+      #   dtype: uint8
+      # # parallel_jaw_mean_q_value:
+      # #   dtype: float32
+      # # suction_mean_q_value:
+      # #   dtype: float32
+      # # parallel_jaw_num_grasps:
+      # #   dtype: float32
+      # # suction_num_grasps:
+      # #   dtype: float32
+      # bin_distances:
+      #   dtype: float32
+      # distance_matrix:
+      #   dtype: float32
+      # T_begin_world:
+      #   dtype: float32
+      #   height: 4
+      #   width: 4
+      # T_end_world:
+      #   dtype: float32
+      #   height: 4
+      #   width: 4
+      # # obj_index:
+      # #   dtype: uint8
 
 # environment params
 transitions:
@@ -337,8 +368,8 @@ action_space:
 state_space:
   urdf_cache_dir: /nfs/diskstation/projects/dex-net/objects/urdf/dexnet_4_v2
 
-  replace: 1
-  samples_per_object: 3
+  replace: 0
+  samples_per_object: 1
   use_box: 0 # pose 2
 
   pile:
@@ -380,17 +411,26 @@ state_space:
      # adversarial:
      #  - yoda # pose 4
 
-    database_path: /nfs/diskstation/db/toppling2.hdf5
+    # database_path: /nfs/diskstation/db/toppling2.hdf5
+    # object_keys:
+    #   mini_dexnet:
+    #     # - gearbox_scaled # pose 1
+    #     # - yoda # pose 6
+    #     # - vase
+    #     # - pipe_connector
+    #     # - pawn # pose 5
+    #     # - bar_clamp
+
+    database_path: /nfs/diskstation/db/toppling0.hdf5
     object_keys:
       mini_dexnet:
-        # - gearbox_scaled # pose 1
-        # - yoda # pose 6
+        # - endstop_holder
+        - gearbox # pose 8
+        # - yoda # pose 2
         # - vase
         # - pipe_connector
-        # - pawn
+        # - pawn # pose 6, 8?
         # - bar_clamp
-        # - mount1
-        - endstop_holder
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:

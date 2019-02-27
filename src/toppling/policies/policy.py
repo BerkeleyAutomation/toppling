@@ -9,7 +9,7 @@ import networkx as nx
 from trimesh import sample 
 from dexnet.envs import MultiEnvPolicy, DexNetGreedyGraspingPolicy, LinearPushAction, NoActionFoundException
 from autolab_core import YamlConfig, RigidTransform
-from toppling.models import TopplingModel
+from toppling.models import TopplingModel, TopplingDatasetModel
 from toppling import normalize, up, is_equivalent_pose, camera_pose
 
 class TopplePolicy(MultiEnvPolicy):
@@ -25,20 +25,27 @@ class TopplePolicy(MultiEnvPolicy):
             how many vertices to sample on the object surface
         """
         MultiEnvPolicy.__init__(self)
-        grasping_config = YamlConfig(config['grasping_policy_config_filename'])
+        policy_params = config['policy']
+        model_params = config['model']
+
+        grasping_config = YamlConfig(policy_params['grasping_policy_config_filename'])
         self.grasping_policy = DexNetGreedyGraspingPolicy(
             grasping_config['policy']['database'], 
             grasping_config['policy']['params']
         )
 
-        policy_params = config['policy_params']
         self.use_sensitivity = use_sensitivity
         self.num_samples = num_samples
         self.thresh = policy_params['thresh']
         self.log = policy_params['log']
-        
-        self.toppling_model = TopplingModel(config['model_params'])
-    
+
+        if model_params['load']:
+            self.toppling_model = TopplingDatasetModel(model_params['dataset_name'])
+            self.get_topple = self.load_topple
+        else:
+            self.toppling_model = TopplingModel(model_params)
+            self.get_topple = self.compute_topple
+
     def set_environment(self, environment):
         MultiEnvPolicy.set_environment(self, environment)
         self.grasping_policy.set_environment(environment)
@@ -64,28 +71,50 @@ class TopplePolicy(MultiEnvPolicy):
             return 0
 
     def get_hand_pose(self, start, end):
-        """
-        Computes the pose of the hand to be perpendicular to the direction of the push
+        def get_hand_rot():
+            """
+            Computes the pose of the hand to be perpendicular to the direction of the push
 
-        Parameters
-        ----------
-        start : 3x' :obj:`numpy.ndarray`
-        end : 3x' :obj:`numpy.ndarray`
+            Parameters
+            ----------
+            start : 3x' :obj:`numpy.ndarray`
+            end : 3x' :obj:`numpy.ndarray`
 
-        Returns
-        -------
-        3x3 :obj:`numpy.ndarray`
-            3D Rotation Matrix
-        """
-        #z = normalize(end - start)
-        #y = normalize(np.cross(z, -up))
-        #x = normalize(np.cross(z, -y))
-        y = normalize(end - start)
-        z = normalize(np.cross(y, up))
-        x = normalize(np.cross(y, z))
-        return np.hstack((x.reshape((-1,1)), y.reshape((-1,1)), z.reshape((-1,1))))
+            Returns
+            -------
+            3x3 :obj:`numpy.ndarray`
+                3D Rotation Matrix
+            """
+            # z = normalize(end - start)
+            # y = normalize(np.cross(z, -up))
+            # x = normalize(np.cross(z, -y))
+            # y = normalize(start - end)
+            # z = normalize(np.cross(y, up))
+            # x = normalize(np.cross(y, z))
 
-    def topple_action(self, state):
+            x = normalize(start - end)
+            y = normalize(np.cross(x, up))
+            z = normalize(np.cross(x, y))
+            return np.hstack((x.reshape((-1,1)), y.reshape((-1,1)), z.reshape((-1,1))))
+
+        R_push = get_hand_rot()
+        
+        start_pose = RigidTransform(
+            rotation=R_push,
+            translation=start,
+            from_frame='grasp',
+            to_frame='world'
+        )
+        end_pose = RigidTransform(
+            rotation=R_push,
+            translation=end,
+            from_frame='grasp',
+            to_frame='world'
+        )
+        return start_pose, end_pose
+
+    def compute_topple(self, state):
+        # raise NotImplementedError
         mesh = state.mesh.copy().apply_transform(state.T_obj_world.matrix)
 
         mesh.fix_normals()
@@ -105,6 +134,14 @@ class TopplePolicy(MultiEnvPolicy):
             push_directions, 
             use_sensitivity=self.use_sensitivity
         )
+        return vertices, normals, poses, vertex_probs, min_required_forces
+
+    def load_topple(self, state):
+        self.toppling_model.load_object(state)
+        return self.toppling_model.predict()
+
+    def topple_metadata(self, state):
+        vertices, normals, poses, vertex_probs, min_required_forces = self.get_topple(state)        
 
         grasp_start = time()
         T_old = deepcopy(state.obj.T_obj_world)
@@ -135,7 +172,6 @@ class TopplePolicy(MultiEnvPolicy):
             'qualities': qualities[1:],
             'current_quality': qualities[0],
             'final_poses': poses[1:], # remove the first pose which corresponds to "no topple"
-            'bottom_points': self.toppling_model.bottom_points,
         }
 
     @abstractmethod
@@ -164,40 +200,28 @@ class SingleTopplePolicy(TopplePolicy):
         policy_start = time()
         orig_pose = deepcopy(state.T_obj_world)
 
-        topple_action_metadata = self.topple_action(state)
-        quality_increases = topple_action_metadata['quality_increases']
-        min_required_forces = topple_action_metadata['min_required_forces']
-        vertices = topple_action_metadata['vertices']
-        normals = topple_action_metadata['normals']
+        topple_metadata = self.topple_metadata(state)
+        quality_increases = topple_metadata['quality_increases']
+        min_required_forces = topple_metadata['min_required_forces']
+        vertices = topple_metadata['vertices']
+        normals = topple_metadata['normals']
         
         best_topple_vertices = np.arange(len(quality_increases))[quality_increases == np.amax(quality_increases)]
         least_force = np.argmin(min_required_forces[best_topple_vertices])
         best_ind = best_topple_vertices[least_force]
         start_position = vertices[best_ind] + normals[best_ind] * .015
         end_position = vertices[best_ind] - normals[best_ind] * .04
-        R_push = self.get_hand_pose(start_position, end_position)
         
-        start_pose = RigidTransform(
-            rotation=R_push,
-            translation=start_position,
-            from_frame='grasp',
-            to_frame='world'
-        )
-        end_pose = RigidTransform(
-            rotation=R_push,
-            translation=end_position,
-            from_frame='grasp',
-            to_frame='world'
-        )
+        start_pose, end_pose = self.get_hand_pose(start_position, end_position)
         print 'Total Policy Time:', time() - policy_start
         state.obj.T_obj_world = orig_pose
         
-        topple_action_metadata['best_ind'] = best_ind
-        topple_action_metadata['predicted_next_state'] = topple_action_metadata['vertex_probs'][best_ind]
+        topple_metadata['best_ind'] = best_ind
+        topple_metadata['predicted_next_state'] = topple_metadata['vertex_probs'][best_ind]
         return LinearPushAction(
             start_pose,
             end_pose,
-            metadata=topple_action_metadata
+            metadata=topple_metadata
         )
 
 class MultiTopplePolicy(TopplePolicy):
@@ -213,7 +237,7 @@ class MultiTopplePolicy(TopplePolicy):
         self.gamma = .95
         TopplePolicy.__init__(self, config, use_sensitivity, num_samples)
 
-    def add_all_nodes_old(self, node_id, metadata, check_duplicates=True):
+    def add_all_nodes_old(self, node_id, metadata, planning_time, check_duplicates=True):
         """
         """
         if self.log:
@@ -327,7 +351,7 @@ class MultiTopplePolicy(TopplePolicy):
         orig_pose = deepcopy(state.T_obj_world)
 
         planning_start = time()
-        original_action_metadata = self.topple_action(state)
+        original_action_metadata = self.topple_metadata(state)
         planning_time = time() - planning_start
 
         self.G = nx.DiGraph()
@@ -359,7 +383,7 @@ class MultiTopplePolicy(TopplePolicy):
             state.obj.T_obj_world = node['pose']
 
             planning_start = time()
-            metadata = self.topple_action(state)
+            metadata = self.topple_metadata(state)
             planning_time = time() - planning_start
             
             new_edge_alphas = add_nodes(node_id, metadata, planning_time)
@@ -373,3 +397,43 @@ class MultiTopplePolicy(TopplePolicy):
         state.obj.T_obj_world = orig_pose
         print 'Total Policy Time:', time() - policy_start
         return time() - policy_start
+
+class TestTopplePolicy(TopplePolicy):
+    def action(self, state, env):
+        """
+        returns the push vertex and direction which maximizes the grasp quality after topping
+        the object at that push vertex
+
+        Parameters
+        ----------
+        state : :obj:`ObjectState`
+        """
+        self.env = env
+        policy_start = time()
+        orig_pose = deepcopy(state.T_obj_world)
+
+        vertices, normals, poses, vertex_probs, min_required_forces = self.load_topple(state)
+        topple_probs = np.sum(vertex_probs[:,1:], axis=1)
+        min_required_forces = min_required_forces
+        
+        best_topple_vertices = np.arange(len(topple_probs))[topple_probs == np.amax(topple_probs)]
+        least_force = np.argmin(min_required_forces[best_topple_vertices])
+        best_ind = best_topple_vertices[least_force]
+        start_position = vertices[best_ind] + normals[best_ind] * .03
+        end_position = vertices[best_ind] - normals[best_ind] * .08
+        
+        start_pose, end_pose = self.get_hand_pose(start_position, end_position)
+        print 'Total Policy Time:', time() - policy_start
+        state.obj.T_obj_world = orig_pose
+        
+        # topple_metadata['best_ind'] = best_ind
+        # topple_metadata['predicted_next_state'] = topple_metadata['vertex_probs'][best_ind]
+        return LinearPushAction(
+            start_pose,
+            end_pose,
+            metadata={
+                'vertices': vertices,
+                'normals': normals,
+                'topple_probs': topple_probs
+            }
+        )

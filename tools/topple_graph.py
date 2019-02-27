@@ -87,7 +87,7 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     config = YamlConfig(args.config_filename)
-    policy = MultiTopplePolicy(config['policy'], use_sensitivity=True, num_samples=800)
+    policy = MultiTopplePolicy(config, use_sensitivity=True, num_samples=800)
     
     if config['debug']:
         random.seed(SEED)
