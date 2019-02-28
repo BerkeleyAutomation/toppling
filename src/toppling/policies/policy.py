@@ -187,7 +187,7 @@ class TopplePolicy(MultiEnvPolicy):
         pass
 
 class SingleTopplePolicy(TopplePolicy):
-    def action(self, state, env):
+    def action(self, state):
         """
         returns the push vertex and direction which maximizes the grasp quality after topping
         the object at that push vertex
@@ -196,7 +196,6 @@ class SingleTopplePolicy(TopplePolicy):
         ----------
         state : :obj:`ObjectState`
         """
-        self.env = env
         policy_start = time()
         orig_pose = deepcopy(state.T_obj_world)
 
@@ -399,7 +398,7 @@ class MultiTopplePolicy(TopplePolicy):
         return time() - policy_start
 
 class TestTopplePolicy(TopplePolicy):
-    def action(self, state, env):
+    def action(self, state, idx=None):
         """
         returns the push vertex and direction which maximizes the grasp quality after topping
         the object at that push vertex
@@ -408,7 +407,6 @@ class TestTopplePolicy(TopplePolicy):
         ----------
         state : :obj:`ObjectState`
         """
-        self.env = env
         policy_start = time()
         orig_pose = deepcopy(state.T_obj_world)
 
@@ -416,9 +414,16 @@ class TestTopplePolicy(TopplePolicy):
         topple_probs = np.sum(vertex_probs[:,1:], axis=1)
         min_required_forces = min_required_forces
         
-        best_topple_vertices = np.arange(len(topple_probs))[topple_probs == np.amax(topple_probs)]
-        least_force = np.argmin(min_required_forces[best_topple_vertices])
-        best_ind = best_topple_vertices[least_force]
+        if idx == None:
+            # best_topple_vertices = np.arange(len(topple_probs))[topple_probs == np.amax(topple_probs)]
+            # least_force = np.argmin(min_required_forces[best_topple_vertices])
+            # best_ind = best_topple_vertices[least_force]
+            index_probs = topple_probs / np.sum(topple_probs)
+            best_ind = np.random.choice(np.arange(len(topple_probs)), p=index_probs)
+        else:
+            best_ind = idx
+        print 'Index: {} Predicted probability: {}'.format(best_ind, topple_probs[best_ind])
+
         start_position = vertices[best_ind] + normals[best_ind] * .03
         end_position = vertices[best_ind] - normals[best_ind] * .08
         
@@ -434,6 +439,7 @@ class TestTopplePolicy(TopplePolicy):
             metadata={
                 'vertices': vertices,
                 'normals': normals,
-                'topple_probs': topple_probs
+                'topple_probs': topple_probs,
+                'best_ind': best_ind
             }
         )

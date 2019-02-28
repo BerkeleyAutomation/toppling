@@ -6,14 +6,14 @@ import os
 import random
 import cv2
 import time
-import sys
+import sys, traceback
 import subprocess
 from plyfile import PlyElement, PlyData
 
 import autolab_core.utils as utils
 from autolab_core import Point, Box, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
-from dexnet.envs import GraspingEnv, LinearPushAction
+from dexnet.envs import GraspingEnv, LinearPushAction, NoRemainingSamplesException
 from dexnet.visualization import DexNetVisualizer3D as vis3d
 from ambidex.databases.postgres import YamlLoader, PostgresSchema
 from ambidex.class_registry import postgres_base_cls_map, full_cls_list
@@ -167,7 +167,7 @@ def create_scene(camera, workspace_objects):
 
     return scene
 
-def update_scene(scene, grasp_obj):
+def get_sim_point_cloud(scene, grasp_obj):
     
     # Remove old objects
     scene_objs = scene.objects.copy()
@@ -184,11 +184,17 @@ def update_scene(scene, grasp_obj):
     so = SceneObject(grasp_obj.mesh, grasp_obj.T_obj_world.copy(), mp)
     scene.add_object(grasp_obj.key, so)
 
+    # Create simulated pointcloud for ICP matching
+    wrapped_depth = depth_scene.wrapped_render([RenderMode.DEPTH])
+    sim_point_cloud = phoxi_tf*phoxi.intrinsics.deproject(wrapped_depth[0])
+    sim_point_cloud_masked, _ = sim_point_cloud.box_mask(mask_box)
+    return sim_point_cloud_masked
+
 def quit():
     kill_stream()
     sys.exit()
 
-def real_to_sim_tf(vis=False):
+def sim_to_real_tf(vis=False):
     # Capture point cloud from physical depth camera
     _, depth_im, _ = phoxi_sensor.frames()
     phys_point_cloud = phoxi_tf*phoxi_sensor.ir_intrinsics.deproject(depth_im)
@@ -199,13 +205,14 @@ def real_to_sim_tf(vis=False):
     
     pcs_config = {'overlap': 0.6, 'accuracy': 0.001, 'samples': 500, 'timeout': 10, 'cache_dir': '/home/chriscorrea14/Super4PCS/cache'}
     pcs_aligner = Super4PCSAligner(pcs_config)
-    real_to_sim_tf = pcs_aligner.align(sim_point_cloud_masked, phys_point_cloud_masked)
+
+    sim_to_real_tf = pcs_aligner.align(phys_point_cloud_masked, sim_point_cloud_masked)
     if vis:
         vis3d.figure()
-        vis3d.points(sim_point_cloud.data.T, color=(1,0,0), scale=.001)
-        vis3d.points((real_to_sim_tf*phys_point_cloud_masked).data.T, color=(0,1,0), scale=.001)
+        vis3d.points(phys_point_cloud_masked.data.T, color=(1,0,0), scale=.001)
+        vis3d.points((sim_to_real_tf*sim_point_cloud_masked).data.T, color=(0,1,0), scale=.001)
         vis3d.show()
-    return real_to_sim_tf
+    return sim_to_real_tf
 
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -244,9 +251,9 @@ if __name__ == '__main__':
     basedir = os.path.join(os.path.dirname(__file__), '..', '..', 'ambidex', 'tests', 'cfg')
     yaml_obj_loader = YamlObjLoader(basedir)
 
-    # phys_robot = yaml_obj_loader('physical_yumi')
-    # try:
-    if True:
+    phys_robot = yaml_obj_loader('physical_yumi')
+    try:
+    # if True:
         work_bin = yaml_obj_loader('bin')
         work_bin.pose = bin_tf
         phoxi = yaml_obj_loader('phoxi')
@@ -273,66 +280,62 @@ if __name__ == '__main__':
         mask_box = Box(min_pt, max_pt, 'world')
 
         env = GraspingEnv(config, config['vis'])
-        env.reset()
-        env.state.obj.T_obj_world.translation[0] += .25
-        env.state.material_props._color = np.array([0.5] * 3)
-        policy.set_environment(env.environment)
+        while not rospy.is_shutdown():
+            try:
+                env.reset()
+            except NoRemainingSamplesException:
+                break
 
-        if args.obs:
-            from dexnet.visualization import DexNetVisualizer2D as vis2d
-            vis2d.figure()
-            vis2d.imshow(env.observation, auto_subplot=True)
-            vis2d.show()
-        
-        update_scene(depth_scene, env.state.obj)
+            env.state.obj.T_obj_world.translation[0] += .25 # put object in bin, not outside it
+            env.state.material_props._color = np.array([0.5] * 3)
+            policy.set_environment(env.environment)
+            
+            orig_pose = env.state.T_obj_world.copy()
 
-        # Create simulated pointcloud for ICP matching
-        wrapped_depth = depth_scene.wrapped_render([RenderMode.DEPTH])
-        sim_point_cloud = phoxi_tf*phoxi.intrinsics.deproject(wrapped_depth[0])
-        sim_point_cloud_masked, _ = sim_point_cloud.box_mask(mask_box)
+            for _ in range(1):
+                push_idx = None
+                sample_id = 0
+                while sample_id < 10:
+                    sim_point_cloud_masked = get_sim_point_cloud(depth_scene, env.state.obj)
+                    usr_input = 'n'
+                    while usr_input != 'y':
+                        usr_input = utils.keyboard_input('Is the object in position? Press v to visualize state [y/n/v]:')
+                        if usr_input == 'v':
+                            vis3d.figure()
+                            env.render_3d_scene()
+                            vis3d.show(camera_pose=CAMERA_POSE)
 
-        real_to_sim_tf = real_to_sim_tf(vis=True)
-        env.state.obj.T_obj_world = real_to_sim_tf*env.state.obj.T_obj_world
+                    usr_input = 'n'
+                    while usr_input != 'y':
+                        s2r = sim_to_real_tf(vis=True)
+                        usr_input = utils.keyboard_input('Did it correctly predict the pose? [y/n]:')
+                    env.state.obj.T_obj_world = s2r*orig_pose
 
-        # # Plan topple action
-        action = policy.action(env.state, env)
-        if args.topple_probs:
-            vis3d.figure()
-            env.render_3d_scene()
-            for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
-               color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
-               vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
-            # for bottom_point in policy.toppling_model.bottom_points:
-            #    vis3d.points(Point(bottom_point, 'world'), scale=.001, color=[0,0,0])
-            gripper = env.gripper(action)
-            T_start_world = action.T_begin_world * gripper.T_mesh_grasp
-            T_end_world = action.T_end_world * gripper.T_mesh_grasp
-            vis3d.mesh(gripper.mesh, T_start_world, color=(0,1,0))
-            vis3d.mesh(gripper.mesh, T_end_world, color=(1,0,0))
-            vis3d.show(camera_pose=CAMERA_POSE)
-        print action.T_begin_world.translation
-        print action.T_end_world.translation
 
-        # Execute action
-        tool = phys_robot.select_tool(None)
-        curr = tool.arm.get_pose()
-        print curr.translation
-        phys_robot.execute(action)     
-        
-        # tool = phys_robot.select_tool(None)
-        # curr = tool.arm.get_pose()
-        # # print action.T_begin_world.translation
-        # # print action.T_end_world.translation
-        # # print curr.translation
-        # # action.T_begin_world.rotation = curr.rotation
-        # # action.T_end_world.rotation = curr.rotation
-        # start = curr.translation + np.array([0,-.3,-.23])
-        # end = start + np.array([0,-.2,-.18])
-        # print end                                                     # 0.14597001
-        # start_pose, end_pose = policy.get_hand_pose(start, end)
-        # action = LinearPushAction(start_pose, end_pose)
-        # phys_robot.execute(action)
-    # except:
-    #     pass
-    # phys_robot.stop()
+                    # # Plan topple action
+                    action = policy.action(env.state, push_idx)
+                    push_idx = action.metadata['best_ind']
+                    if args.topple_probs:
+                        vis3d.figure()
+                        env.render_3d_scene()
+                        for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
+                           color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
+                           vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
+                        gripper = env.gripper(action)
+                        T_start_world = action.T_begin_world * gripper.T_mesh_grasp
+                        T_end_world = action.T_end_world * gripper.T_mesh_grasp
+                        # vis3d.mesh(gripper.mesh, T_start_world, color=(0,1,0))
+                        # vis3d.mesh(gripper.mesh, T_end_world, color=(1,0,0))
+                        vis3d.plot3d([T_start_world.translation, T_end_world.translation], color=(0,1,0), tube_radius=.0006)
+                        vis3d.show(camera_pose=CAMERA_POSE)
+
+                    # Execute action
+                    phys_robot.execute(action)
+                    env.state.obj.
+                    sample_id += 1
+                # Reset push index, try different push
+                push_idx = None
+    except:
+        traceback.print_exc(file=sys.stdout)
+    phys_robot.stop()
 

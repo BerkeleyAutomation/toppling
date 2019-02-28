@@ -27,7 +27,7 @@ model:
   max_force: 400 # 10x the average for gearbox
   log: 0
 
-  load: 0
+  load: 1
   dataset_name: /nfs/diskstation/db/toppling/mini_dexnet
 
 # ray params
@@ -425,11 +425,11 @@ state_space:
     object_keys:
       mini_dexnet:
         # - endstop_holder
-        - gearbox # pose 8
+        # - gearbox # pose 8
         # - yoda # pose 2
         # - vase
         # - pipe_connector
-        # - pawn # pose 6, 8?
+        - pawn # pose 6, 8?
         # - bar_clamp
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5

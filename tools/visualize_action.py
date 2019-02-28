@@ -70,7 +70,7 @@ if __name__ == '__main__':
     if args.before:
         env.render_3d_scene()
         vis3d.show(starting_camera_pose=CAMERA_POSE)
-    action = policy.action(env.state, env)
+    action = policy.action(env.state)
 
     vis3d.figure()
     env.render_3d_scene()

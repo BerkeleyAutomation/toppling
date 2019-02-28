@@ -47,7 +47,7 @@ def dotted_line(start, end):
     return np.array(lines)
 
 def figure_0():
-    action = policy.action(env.state, env)
+    action = policy.action(env.state)
     env.render_3d_scene()
     bottom_points = policy.toppling_model.bottom_points
     vis3d.plot3d(bottom_points[:2], color=[0,0,0], tube_radius=.001)
@@ -174,7 +174,7 @@ def figure_2():
 
 def figure_3():
     env.state.obj.T_obj_world.translation += np.array([-.01,-.05,.01])
-    action = policy.action(env.state, env)
+    action = policy.action(env.state)
     mesh = env.state.obj.mesh.copy().apply_transform(env.state.T_obj_world.matrix)
     mesh = mesh.slice_plane([0,0,.0105], -up)
     from dexnet.grasping import GraspableObject3D
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     #figure_2()
     #figure_3()
     # figure_0()
-    action = policy.action(env.state, env)
+    action = policy.action(env.state)
     #noise_vis()
 
     if False:
