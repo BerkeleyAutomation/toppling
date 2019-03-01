@@ -89,8 +89,14 @@ if __name__ ==  '__main__':
         policy.set_environment(env.environment)
         obj_keys_to_id[env.state.obj.key] = deepcopy(obj_id)
 
-        stable_poses, _ = env.state.obj.mesh.compute_stable_poses(threshold=0.001)
-        for pose in stable_poses:
+        obj_config = config['state_space']['object']
+        stable_poses, _ = env.state.obj.mesh.compute_stable_poses(
+            sigma=obj_config['stp_com_sigma'],
+            n_samples=obj_config['stp_num_samples'],
+            threshold=obj_config['stp_min_prob']
+        )
+        for pose_num, pose in enumerate(stable_poses):
+            print 'Computing Topples for pose', pose_num
             rot, trans = RigidTransform.rotation_and_translation_from_matrix(pose)
             env.state.obj.T_obj_world = RigidTransform(rot, trans, 'obj', 'world')
             # pose = env.state.obj.T_obj_world.matrix

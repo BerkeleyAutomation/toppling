@@ -505,14 +505,18 @@ class TopplingModel():
         #return self.final_poses, vertex_probs, np.array(min_required_forces)
 
 class TopplingDatasetModel():
-    def __init__(self, dataset_name):
-        self.dataset = TensorDataset.open(dataset_name)
-        with open(dataset_name+"/obj_ids.json", "r") as read_file:
-            self.obj_ids = json.load(read_file)
+    def __init__(self, datasets):
+        self.datasets = {dataset_name:TensorDataset.open(datasets[dataset_name]) for dataset_name in datasets.keys()}
+        self.obj_ids = {}
+        for dataset_name in datasets.keys():
+            with open(datasets[dataset_name]+"/obj_ids.json", "r") as read_file:
+                self.obj_ids[dataset_name] = json.load(read_file)
         print self.obj_ids
+        print self.datasets
 
     def load_object(self, state):
         self.obj = state.obj
+        self.com = self.obj.mesh.center_mass
         self.datapoint = None
         similarity = np.inf
         for i in range(self.dataset.num_datapoints):

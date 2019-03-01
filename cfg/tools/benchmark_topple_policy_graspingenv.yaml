@@ -28,7 +28,9 @@ model:
   log: 0
 
   load: 1
-  dataset_name: /nfs/diskstation/db/toppling/mini_dexnet
+  datasets:
+    mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet_scaled
+    #ycb: /nfs/diskstation/db/toppling/ycb/
 
 # ray params
 ray:
@@ -68,101 +70,28 @@ dataset:
         dtype: float32
         height: 80 # 20 possible * 4
         width: 4
-      # # states
-      # obj_poses:
-      #   dtype: float32
-      # obj_coms:
-      #   dtype: float32
-      # obj_ids:
-      #   dtype: uint32
-      # camera_poses:
-      #   dtype: float32
-      #   height: 7
-      # camera_intrs:
-      #   dtype: float32
-      #   height: 7
-      # robot_poses:
-      #   dtype: float32
-      #   height: 7
 
-      # # observations
-      # # color_ims:
-      # #   dtype: uint8
-      # #   channels: 3
-      # # depth_ims:
-      # #   dtype: float32
-      # #   channels: 1
-
-      # # actions
-      # action_ids:
-      #   dtype: uint8
-      # action_poses:
-      #   dtype: float32
-      #   height: 14
-
-      # # rewards
-      # rewards:
-      #   dtype: float32    
-      # cleared_pile:
-      #   dtype: uint8
-
-      # # metadata
-      # timesteps:
-      #   dtype: uint32
-      # policy_ids:
-      #   dtype: uint8
-      # grasp_metrics:
-      #   dtype: float32
-      # collisions:
-      #   dtype: uint8
-      # collisions_with_env:
-      #   dtype: uint8
-      # greedy_q_values:
-      #   dtype: float32
-      # pred_q_values:
-      #   dtype: float32
-      # grasped_obj_ids:
-      #   dtype: uint32
-      # heap_ids:
-      #   dtype: uint32
-
-      # # Singulation Metrics Data
-      # parallel_jaw_best_q_value:
-      #   dtype: float32
-      # suction_best_q_value:
-      #   dtype: float32
-      # # parallel_jaw_best_q_value_single:
-      # #   dtype: float32
-      # # suction_best_q_value_single:
-      # #   dtype: float32
-      # singulated_obj_index:
-      #   dtype: uint8
-      # parallel_jaw_grasped_obj_index:
-      #   dtype: uint8
-      # suction_grasped_obj_index:
-      #   dtype: uint8
-      # # parallel_jaw_mean_q_value:
-      # #   dtype: float32
-      # # suction_mean_q_value:
-      # #   dtype: float32
-      # # parallel_jaw_num_grasps:
-      # #   dtype: float32
-      # # suction_num_grasps:
-      # #   dtype: float32
-      # bin_distances:
-      #   dtype: float32
-      # distance_matrix:
-      #   dtype: float32
-      # T_begin_world:
-      #   dtype: float32
-      #   height: 4
-      #   width: 4
-      # T_end_world:
-      #   dtype: float32
-      #   height: 4
-      #   width: 4
-      # # obj_index:
-      # #   dtype: uint8
+experiments:
+  tensors:
+    datapoints_per_file: 100
+    fields:
+      obj_id: 
+        dtype: uint32
+      obj_pose:
+        dtype: float32
+        height: 4
+        width: 4
+      vertex:
+        dtype: float32
+        height: 3
+      normal:
+        dtype: float32
+        height: 3
+      fraction_toppled:
+        dtype: float32
+      pose_diffs:
+        dtype: float32
+        height: 10
 
 # environment params
 transitions:
@@ -381,22 +310,6 @@ state_space:
       - 0.15
 
   object: 
-    # database_path: /nfs/diskstation/db/dexnet_3_database.hdf5
-    # object_keys:
-    #  mini_dexnet:
-    #    #- bar_clamp # pose 0
-    #    - gearbox # pose 4
-    #    #- pawn # pose 5
-    #    #- climbing_hold
-    #    #- endstop_holder
-    #    #- mount1
-    #    #- mount2
-    #    #- nozzle
-    #    #- part1
-    #    #- part3
-    #    #- pipe_connecter
-    #    #- turbine_housing
-    #    #- vase # pose 7
 
     # database_path: /nfs/diskstation/db/toppling.hdf5
     # object_keys:
@@ -411,26 +324,27 @@ state_space:
      # adversarial:
      #  - yoda # pose 4
 
-    # database_path: /nfs/diskstation/db/toppling2.hdf5
-    # object_keys:
-    #   mini_dexnet:
-    #     # - gearbox_scaled # pose 1
-    #     # - yoda # pose 6
-    #     # - vase
-    #     # - pipe_connector
-    #     # - pawn # pose 5
-    #     # - bar_clamp
-
-    database_path: /nfs/diskstation/db/toppling0.hdf5
+    database_path: /nfs/diskstation/db/toppling2.hdf5
     object_keys:
-      mini_dexnet:
-        # - endstop_holder
-        # - gearbox # pose 8
-        # - yoda # pose 2
-        # - vase
-        # - pipe_connector
-        - pawn # pose 6, 8?
-        # - bar_clamp
+    #  mini_dexnet:
+    #    - gearbox_scaled # pose 1
+    #    - yoda # pose 6
+    #    - vase
+    #    - pipe_connector
+    #    - pawn # pose 5
+    #    - bar_clamp
+      ycb: all
+
+    #database_path: /nfs/diskstation/db/toppling0.hdf5
+    #object_keys:
+    #  mini_dexnet:
+    #    # - endstop_holder
+    #    # - gearbox # pose 8
+    #    # - yoda # pose 2
+    #    # - vase
+    #    # - pipe_connector
+    #    - pawn # pose 6, 8?
+    #    # - bar_clamp
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:
@@ -494,7 +408,7 @@ state_space:
       smooth: 0
     stp_com_sigma: .0025
     stp_num_samples: 10
-    stp_min_prob: .01
+    stp_min_prob: .05
 
   camera:
     frame: phoxi_overhead

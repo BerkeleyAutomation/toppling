@@ -9,7 +9,7 @@ import random
 
 from autolab_core import YamlConfig
 from dexnet.constants import *
-from dexnet.envs import GraspingEnv
+from dexnet.envs import GraspingEnv, NoActionFoundException
 from dexnet.envs import DexNetGreedyGraspingPolicy
 
 if __name__ == '__main__':
@@ -19,7 +19,6 @@ if __name__ == '__main__':
     )
     config = YamlConfig(default_config_filename)
     grasping_config_filename = config['policy']['grasping_policy_config_filename']
-    print grasping_config_filename
     grasping_config = YamlConfig(grasping_config_filename)
 
     database = grasping_config['policy']['database']
@@ -27,7 +26,12 @@ if __name__ == '__main__':
     policy = DexNetGreedyGraspingPolicy(database, params)
     
     env = GraspingEnv(config, config['vis'])
-    env.reset()
-    policy.set_environment(env.environment)
-    action = policy.action(env.state)
-    print action.q_value
+    while True:
+        env.reset()
+        policy.set_environment(env.environment)
+        try:
+            action = policy.action(env.state)
+            print action.q_value
+        except NoActionFoundException:
+            print 'no action'
+        raw_input()

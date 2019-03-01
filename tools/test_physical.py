@@ -194,7 +194,7 @@ def quit():
     kill_stream()
     sys.exit()
 
-def sim_to_real_tf(vis=False):
+def sim_to_real_tf(sim_point_cloud_masked, vis=False):
     # Capture point cloud from physical depth camera
     _, depth_im, _ = phoxi_sensor.frames()
     phys_point_cloud = phoxi_tf*phoxi_sensor.ir_intrinsics.deproject(depth_im)
@@ -214,6 +214,10 @@ def sim_to_real_tf(vis=False):
         vis3d.show()
     return sim_to_real_tf
 
+def get_dataset(config, args):
+    tensor_config = config['experiments']['tensors']
+    return TensorDataset(args.output, tensor_config)
+
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                        '..',
@@ -223,6 +227,7 @@ def parse_args():
     parser.add_argument('--topple_probs', action='store_false', help=
         """If specified, it will not show the topple probabilities"""
     )
+    parser.add_argument('-output', type=str, help='path to dataset to create')
     parser.add_argument('--config_filename', type=str, default=default_config_filename, help='configuration file to use')
     parser.add_argument('--obs', action='store_true')
     return parser.parse_args()
@@ -280,6 +285,9 @@ if __name__ == '__main__':
         mask_box = Box(min_pt, max_pt, 'world')
 
         env = GraspingEnv(config, config['vis'])
+        dataset = get_dataset(config, args)
+        datapoint = dataset.datapoint_template
+
         while not rospy.is_shutdown():
             try:
                 env.reset()
@@ -295,11 +303,12 @@ if __name__ == '__main__':
             for _ in range(1):
                 push_idx = None
                 sample_id = 0
+                num_toppled, pose_diffs = [], []
                 while sample_id < 10:
                     sim_point_cloud_masked = get_sim_point_cloud(depth_scene, env.state.obj)
                     usr_input = 'n'
                     while usr_input != 'y':
-                        usr_input = utils.keyboard_input('Is the object in position? Press v to visualize state [y/n/v]:')
+                        usr_input = utils.keyboard_input('Press y to start the next experiment. Press v to visualize state [y/n/v]:')
                         if usr_input == 'v':
                             vis3d.figure()
                             env.render_3d_scene()
@@ -307,14 +316,16 @@ if __name__ == '__main__':
 
                     usr_input = 'n'
                     while usr_input != 'y':
-                        s2r = sim_to_real_tf(vis=True)
+                        s2r = sim_to_real_tf(sim_point_cloud_masked, vis=True)
                         usr_input = utils.keyboard_input('Did it correctly predict the pose? [y/n]:')
                     env.state.obj.T_obj_world = s2r*orig_pose
 
-
-                    # # Plan topple action
+                    # Plan topple action
                     action = policy.action(env.state, push_idx)
                     push_idx = action.metadata['best_ind']
+                    final_poses = action.metadata['final_poses']
+                    vertex_probs = action.metadata['vertex_probs'] 
+
                     if args.topple_probs:
                         vis3d.figure()
                         env.render_3d_scene()
@@ -324,17 +335,42 @@ if __name__ == '__main__':
                         gripper = env.gripper(action)
                         T_start_world = action.T_begin_world * gripper.T_mesh_grasp
                         T_end_world = action.T_end_world * gripper.T_mesh_grasp
-                        # vis3d.mesh(gripper.mesh, T_start_world, color=(0,1,0))
-                        # vis3d.mesh(gripper.mesh, T_end_world, color=(1,0,0))
-                        vis3d.plot3d([T_start_world.translation, T_end_world.translation], color=(0,1,0), tube_radius=.0006)
+                        vis3d.plot3d([action.T_begin_world.translation, action.T_end_world.translation], color=(0,1,0), tube_radius=.0006)
                         vis3d.show(camera_pose=CAMERA_POSE)
 
                     # Execute action
                     phys_robot.execute(action)
-                    env.state.obj.
+                    did_topple = utils.keyboard_input('Did it topple? [y/n]:')
+                    num_toppled.append(1 if did_topple else 0)
+
+                    # record final pose
+                    predicted_pose = final_poses[np.argmax(vertex_probs[push_idx])]
+                    env.state.obj.T_obj_world = predicted_pose
+                    sim_point_cloud_masked = get_sim_point_cloud(depth_scene, env.state.obj)
+                    usr_input = 'n'
+                    while usr_input != 'y':
+                        final_pose_s2r = sim_to_real_tf(sim_point_cloud_masked, vis=True)
+                        usr_input = utils.keyboard_input('Did it correctly predict the pose? [y/n]:')
+                    env.state.obj.T_obj_world = orig_pose
+
+                    # check if final pose is as predicted
+                    pose_diff = pose_diff(predicted_pose, final_pose_s2r*predicted_pose)
+                    print 'pose diff', pose_diff
+                    pose_diffs.append(pose_diff)
                     sample_id += 1
+
+
+                vertex = action.metadata['vertices'][push_idx]
+                normal = action.metadata['normals'][push_idx]
+                datapoint['obj_id'] = policy.toppling_model.obj_ids[env.state.obj.key]
+                datapoint['vertex'] = (s2r.inverse() * Point(vertex, 'world')).data.T
+                datapoint['normal'] = (s2r.inverse() * Point(normal, 'world')).data.T
+                datapoint['fraction_toppled'] = np.mean(num_toppled)
+                datapoint['pose_diffs'] = np.array(pose_diffs)
+                dataset.add(datapoint)
                 # Reset push index, try different push
                 push_idx = None
+    dataset.flush()
     except:
         traceback.print_exc(file=sys.stdout)
     phys_robot.stop()

@@ -40,7 +40,7 @@ class TopplePolicy(MultiEnvPolicy):
         self.log = policy_params['log']
 
         if model_params['load']:
-            self.toppling_model = TopplingDatasetModel(model_params['dataset_name'])
+            self.toppling_model = TopplingDatasetModel(model_params['datasets'])
             self.get_topple = self.load_topple
         else:
             self.toppling_model = TopplingModel(model_params)
@@ -50,7 +50,7 @@ class TopplePolicy(MultiEnvPolicy):
         MultiEnvPolicy.set_environment(self, environment)
         self.grasping_policy.set_environment(environment)
 
-    def quality(self, state, T_obj_world):
+    def quality(self, state, T_obj_world=None):
         """
         Computes the grasp quality of the object in the passed in state
 
@@ -64,7 +64,8 @@ class TopplePolicy(MultiEnvPolicy):
         float
             highest grasp quality of the object, or 0 if no grasps are found
         """
-        state.obj.T_obj_world = T_obj_world
+        if T_obj_world is not None:
+            state.obj.T_obj_world = T_obj_world
         try:
             return self.grasping_policy.action(state).q_value
         except NoActionFoundException as e:
@@ -397,6 +398,41 @@ class MultiTopplePolicy(TopplePolicy):
         print 'Total Policy Time:', time() - policy_start
         return time() - policy_start
 
+class RandomTopplePolicy(TopplePolicy):
+    def action(self, state):
+        mesh = state.mesh.copy().apply_transform(state.T_obj_world.matrix)
+
+        mesh.fix_normals()
+        vertices, face_ind = sample.sample_surface_even(mesh, self.num_samples)
+        normals = mesh.face_normals[face_ind]
+        
+        angles = normals.dot(up)
+        valid_pushes = angles > 1.39626 and angles < 1.74533 # within 10 degrees of horizontal
+        best_valid_ind = np.argmax(normals[valid_pushes][:,2]) # index of best 
+        best_ind = np.arange(self.num_samples)[valid_pushes][best_valid_ind]
+        
+        self.toppling_model.load_object(state)
+        poses, vertex_probs, min_required_forces = self.toppling_model.predict(
+            [vertices[best_ind]], 
+            [normals[best_ind]], 
+            [-normals[best_ind]], 
+            use_sensitivity=self.use_sensitivity
+        )
+        
+        start_position = vertices[best_ind] + normals[best_ind] * .015
+        end_position = vertices[best_ind] - normals[best_ind] * .04
+        
+        start_pose, end_pose = self.get_hand_pose(start_position, end_position)
+        return LinearPushAction(
+            start_pose,
+            end_pose,
+            metadata={
+                'vertex_probs': vertex_probs[0],
+                'min_required_forces': min_required_forces,
+                'final_poses', poses
+            }
+        )
+
 class TestTopplePolicy(TopplePolicy):
     def action(self, state, idx=None):
         """
@@ -439,7 +475,9 @@ class TestTopplePolicy(TopplePolicy):
             metadata={
                 'vertices': vertices,
                 'normals': normals,
+                'vertex_probs': vertex_probs,
                 'topple_probs': topple_probs,
-                'best_ind': best_ind
+                'best_ind': best_ind,
+                'final_poses': poses
             }
         )

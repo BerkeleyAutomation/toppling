@@ -45,6 +45,35 @@ def forward_sim(G, policy_name, value):
     logger.info(policy_name + ' Final Quality: '+str(curr_node['gq']))
     return path
 
+def forward_sim_random(env, policy):
+    curr_q = policy.quality(env.state)
+    logger.info('Random Original Quality: '+str(curr_q))
+
+    obj_config['state_space']['object']
+    state = env.state.copy()
+
+    all_poses = state.obj.mesh.compute_stable_poses(
+        sigma=obj_config['stp_com_sigma'],
+        n_samples=obj_config['stp_num_samples'],
+        threshold=obj_config['stp_min_prob']
+    )
+    best_q = np.max([policy.quality(state, pose) for pose in all_poses])   
+    num_failed_actions = 0
+    while num_failed_actions < 3:
+        if curr_q == best_q:
+            break
+        action = policy.action(env.state)
+        probs = action.metadata['vertex_probs']
+        poses = action.metadata['poses']
+        pose_ind = np.random.choice(np.arange(len(poses)), p=probs)
+        if pose_ind == 0:
+            num_failed_actions += 1
+        else:
+            num_failed_actions = 0
+            env.state.T_obj_world = poses[pose_ind]
+            curr_q = policy.quality(env.state)
+    logger.info('Random Final Quality: '+str(curr_q))
+
 def test_multi_push(env):
     env = GraspingEnv(config, config['vis'])
     policy = MultiTopplePolicy(config['policy'], use_sensitivity=True)
