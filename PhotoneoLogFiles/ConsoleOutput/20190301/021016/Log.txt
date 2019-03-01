@@ -1,0 +1,1011 @@
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 0.857483
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.415714
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.324431
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 30.663803
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 0.940679
+PhoXiTest Init OK
+[02:10:15] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.210461
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.357805
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 87.402186
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 56.281613
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 79.536622
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 44.805674
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 56.001246
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 140.285114
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.227457
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 78.300269
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.644177
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 19.378982
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 16.063764
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.941802
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.425424
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 8.465658
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.839464
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.366812
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.336032
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.346645
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 6.423806
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.177270
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 10.539146
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 2.015043
+PhoXiTest Init OK
+[02:11:52] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 1.049216
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.943294
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 84.446362
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 55.979943
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 76.955373
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 33.164400
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 54.380077
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 123.391664
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.450725
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 61.632054
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.140157
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.744029
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.621232
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.486530
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.396493
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.456111
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.805815
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.340597
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.271059
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.251658
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 1.641701
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.135268
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 30.794679
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 1.665500
+PhoXiTest Init OK
+[02:14:17] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 2.119514
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 1.602683
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 89.979617
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 51.391854
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 53.685646
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 20.863070
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 51.899527
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 122.296538
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.272416
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 83.284110
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 16.756916
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.560837
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.523898
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.373657
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.480576
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.404270
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.109672
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.448718
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.434307
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.301468
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 8.693762
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.147821
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 30.931221
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 3.311322
+PhoXiTest Init OK
+[02:16:38] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 1.804986
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.747100
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 101.679911
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 65.995402
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 56.882133
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 88.543090
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 57.054890
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 137.805565
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.268157
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 65.702195
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 18.760308
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 20.218913
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 17.191426
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.165442
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.459583
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.226288
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.927760
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.325631
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.236316
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.223267
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 1.633279
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.190747
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 20.724942
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 6.511595
+PhoXiTest Init OK
+[02:17:46] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 2.393380
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.194232
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 81.158875
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 54.281348
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 57.751183
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 22.918927
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 52.165348
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 158.973257
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.277409
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 75.527117
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 16.749151
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 13.710167
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.135607
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.554392
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.459247
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.307287
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.893572
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.385131
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.452215
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.295806
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 6.567243
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.207457
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 20.795487
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 3.604548
+PhoXiTest Init OK
+[02:20:43] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.547577
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 1.755647
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 111.562555
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 62.452699
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 58.035525
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 111.763223
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 62.243178
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 130.760097
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.422724
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 77.429529
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.350978
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.802983
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.326608
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.180568
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.399367
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 8.903880
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.301895
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.380241
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 4.382078
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.484796
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.607562
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.304014
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 4.373751
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.434370
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.263158
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.398619
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 4.284803
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.399672
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.731116
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.391741
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 1.263824
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.486419
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 1.213754
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.461246
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 4.757534
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.411608
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.318228
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.477888
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 4.443260
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.514364
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.307047
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.472905
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.343901
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.209091
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 7.879345
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.196355
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 10.562185
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 1.601717
+PhoXiTest Init OK
+[02:33:06] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.446561
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.425795
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 71.277546
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 51.232075
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 50.298589
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 95.088620
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 52.178646
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 112.640817
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.274136
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 80.575822
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 39.402689
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 17.424422
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.161554
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 16.002318
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.418845
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.078935
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.004672
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.394246
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.091993
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.373964
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.760351
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.434046
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.303074
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.236600
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 6.534568
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.207341
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 30.819417
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 4.336012
+PhoXiTest Init OK
+[02:36:35] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 2.513818
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.664735
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 79.567184
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 52.767957
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 60.293029
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 20.940447
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 58.203988
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 127.891190
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.385335
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 68.366957
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 20.133676
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 19.199812
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.968249
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.549602
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.402234
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 9.103793
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.917926
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.390738
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 2.475144
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.389574
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.328245
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.412445
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.298838
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.304809
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 8.036308
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.160915
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 15.622420
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 4.970534
+PhoXiTest Init OK
+[02:40:36] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.440357
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.420640
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 72.896824
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 51.051539
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 53.198097
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 116.707539
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 116.993007
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 56.336018
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.271817
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 77.025717
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.048508
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.251326
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.572099
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.010387
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.417044
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 2.180977
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 1.098420
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.518823
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.320896
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.266862
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 6.594861
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.252002
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 20.707811
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Message received: SendAndReceiveBoostSerializableClassVersionsCommand - Request from 0
+Sending message: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message sent: SendAndReceiveBoostSerializableClassVersionsCommand - Answer to 0
+Message received: ConnectCommand - Answer from 0 Duration: 2.713401
+PhoXiTest Init OK
+[02:41:56] PhoXi Device PhoXi Scanner is Connected
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 5.906799
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.189318
+Sending message: GetSupportedCapturingModes - Request to 0
+Message sent: GetSupportedCapturingModes - Request to 0
+Message received: GetSupportedCapturingModes - Answer from 0 Duration: 88.308062
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 52.912011
+Sending message: GetCapturingMode - Request to 0
+Message sent: GetCapturingMode - Request to 0
+Message received: GetCapturingMode - Answer from 0 Duration: 62.626770
+Sending message: SetCapturingMode - Request to 0
+Message sent: SetCapturingMode - Request to 0
+Message received: SetCapturingMode - Answer from 0 Duration: 34.437891
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 57.333468
+Sending message: GetCapturingSettings - Request to 0
+Message sent: GetCapturingSettings - Request to 0
+Message received: GetCapturingSettings - Answer from 0 Duration: 117.534998
+Sending message: GetTriggerMode - Request to 0
+Message sent: GetTriggerMode - Request to 0
+Message received: GetTriggerMode - Answer from 0 Duration: 0.270661
+Sending message: GetProcessingSettings - Request to 0
+Message sent: GetProcessingSettings - Request to 0
+Message received: GetProcessingSettings - Answer from 0 Duration: 64.901298
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 15.882430
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 16.674177
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.453541
+Sending message: GetOutputSettings - Request to 0
+Message sent: GetOutputSettings - Request to 0
+Message received: GetOutputSettings - Answer from 0 Duration: 14.439339
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.408878
+Sending message: StartAcquisition - Request to 0
+Message sent: StartAcquisition - Request to 0
+Message received: StartAcquisition - Answer from 0 Duration: 8.687448
+Sending message: SoftwareTrigger - Request to 0
+Message sent: SoftwareTrigger - Request to 0
+Message received: SoftwareTrigger - Answer from 0 Duration: 3.056627
+Message received: CommunicationDataBufferNewFrame - Request from 0
+Sending message: CommunicationDataBufferNewFrame - Answer to 0
+Message sent: CommunicationDataBufferNewFrame - Answer to 0
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.396065
+Sending message: GetDevices - Request to 0
+Message sent: GetDevices - Request to 0
+Message received: GetDevices - Answer from 0 Duration: 0.388782
+Sending message: GetHWStatus - Request to 0
+Message sent: GetHWStatus - Request to 0
+Message received: GetHWStatus - Answer from 0 Duration: 0.220394
+Sending message: StopAcquisition - Request to 0
+Message sent: StopAcquisition - Request to 0
+Message received: StopAcquisition - Answer from 0 Duration: 1.610456
+Message received: WakeDummy - Request from -1
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: DisconnectCommand - Answer from 0 Duration: 0.159525
+Message received: WakeDummy - Request from -1
+Sending message: ConnectPhoXi - Request to 0
+Message sent: ConnectPhoXi - Request to 0
+Message received: ConnectPhoXi - Answer from 0 Duration: 20.692545
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: WakeDummy - Request from -1
+[02:42:57] Error in PhoXi Device: Failed to initialize connection to PhoXi Control
+[02:43:03] Error in PhoXi Device: PhoXi is not connected
+[02:43:03] Error in PhoXi Device: PhoXi is not connected
+[02:43:03] Error in PhoXi Device: PhoXi device is not connected

@@ -511,17 +511,20 @@ class TopplingDatasetModel():
         for dataset_name in datasets.keys():
             with open(datasets[dataset_name]+"/obj_ids.json", "r") as read_file:
                 self.obj_ids[dataset_name] = json.load(read_file)
-        print self.obj_ids
-        print self.datasets
 
     def load_object(self, state):
         self.obj = state.obj
         self.com = self.obj.mesh.center_mass
+
+        obj_dataset_name = self.obj.key.split('~')[0]
+        dataset = self.datasets[obj_dataset_name]
+        obj_ids = self.obj_ids[obj_dataset_name]
         self.datapoint = None
+
         similarity = np.inf
-        for i in range(self.dataset.num_datapoints):
-            datapoint = self.dataset.datapoint(i)
-            if self.obj_ids[self.obj.key] != datapoint['obj_id']:
+        for i in range(dataset.num_datapoints):
+            datapoint = dataset.datapoint(i)
+            if obj_ids[self.obj.key] != datapoint['obj_id']:
                 continue
 
             rot, trans = RigidTransform.rotation_and_translation_from_matrix(datapoint['obj_pose'])

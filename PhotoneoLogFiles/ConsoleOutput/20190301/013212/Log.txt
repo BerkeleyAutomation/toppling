@@ -1,0 +1,7 @@
+New API Output Channel 0
+Sending message: ConnectCommand - Request to 0
+Message sent: ConnectCommand - Request to 0
+Broadcasting command DisconnectCommand to 1 outputs:
+Sending message: DisconnectCommand - Request to 0
+Message sent: DisconnectCommand - Request to 0
+Message received: WakeDummy - Request from -1

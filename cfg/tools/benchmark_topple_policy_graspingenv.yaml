@@ -29,7 +29,7 @@ model:
 
   load: 1
   datasets:
-    mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet_scaled
+    mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet
     #ycb: /nfs/diskstation/db/toppling/ycb/
 
 # ray params
@@ -324,27 +324,27 @@ state_space:
      # adversarial:
      #  - yoda # pose 4
 
-    database_path: /nfs/diskstation/db/toppling2.hdf5
-    object_keys:
-    #  mini_dexnet:
-    #    - gearbox_scaled # pose 1
-    #    - yoda # pose 6
-    #    - vase
-    #    - pipe_connector
-    #    - pawn # pose 5
-    #    - bar_clamp
-      ycb: all
+    # database_path: /nfs/diskstation/db/toppling2.hdf5
+    # object_keys:
+    #   mini_dexnet:
+    # #    - gearbox_scaled # pose 1
+    #     - yoda # pose 6
+    # #    - vase
+    # #    - pipe_connector
+    # #    - pawn # pose 5
+    # #    - bar_clamp
+    #   # ycb: all
 
-    #database_path: /nfs/diskstation/db/toppling0.hdf5
-    #object_keys:
-    #  mini_dexnet:
-    #    # - endstop_holder
-    #    # - gearbox # pose 8
-    #    # - yoda # pose 2
-    #    # - vase
-    #    # - pipe_connector
-    #    - pawn # pose 6, 8?
-    #    # - bar_clamp
+    database_path: /nfs/diskstation/db/toppling0.hdf5
+    object_keys:
+     mini_dexnet:
+       # - endstop_holder
+       # - gearbox # pose 8
+       # - yoda # pose 2
+       # - vase
+       # - pipe_connector
+       - pawn # pose 6, 8?
+       # - bar_clamp
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:
@@ -408,7 +408,7 @@ state_space:
       smooth: 0
     stp_com_sigma: .0025
     stp_num_samples: 10
-    stp_min_prob: .05
+    stp_min_prob: .01
 
   camera:
     frame: phoxi_overhead

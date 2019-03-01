@@ -429,7 +429,7 @@ class RandomTopplePolicy(TopplePolicy):
             metadata={
                 'vertex_probs': vertex_probs[0],
                 'min_required_forces': min_required_forces,
-                'final_poses', poses
+                'final_poses': poses
             }
         )
 
@@ -454,7 +454,8 @@ class TestTopplePolicy(TopplePolicy):
             # best_topple_vertices = np.arange(len(topple_probs))[topple_probs == np.amax(topple_probs)]
             # least_force = np.argmin(min_required_forces[best_topple_vertices])
             # best_ind = best_topple_vertices[least_force]
-            index_probs = topple_probs / np.sum(topple_probs)
+            topple_probs_equal = topple_probs + 1e-4
+            index_probs = topple_probs_equal / np.sum(topple_probs_equal)
             best_ind = np.random.choice(np.arange(len(topple_probs)), p=index_probs)
         else:
             best_ind = idx
