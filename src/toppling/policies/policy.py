@@ -5,6 +5,7 @@ import sys
 from time import time
 from abc import ABCMeta, abstractmethod
 import networkx as nx
+import numpy.ma as ma
 
 from trimesh import sample 
 from dexnet.envs import MultiEnvPolicy, DexNetGreedyGraspingPolicy, LinearPushAction, NoActionFoundException
@@ -199,7 +200,7 @@ class SingleTopplePolicy(TopplePolicy):
         """
         policy_start = time()
         orig_pose = deepcopy(state.T_obj_world)
-
+        
         topple_metadata = self.topple_metadata(state)
         quality_increases = topple_metadata['quality_increases']
         min_required_forces = topple_metadata['min_required_forces']
@@ -407,17 +408,11 @@ class RandomTopplePolicy(TopplePolicy):
         normals = mesh.face_normals[face_ind]
         
         angles = normals.dot(up)
-        valid_pushes = angles > 1.39626 and angles < 1.74533 # within 10 degrees of horizontal
+        valid_pushes = np.logical_and(ma.masked_greater(angles, 1.39626), ma.masked_less(angles, 1.74533)) # within 10 degrees of horizontal
+        if not np.any(valid_pushes):
+            return LinearPushAction(None, None, metadata={'vertex': np.array([0,0,0]), 'normal': np.array([1,0,0])})
         best_valid_ind = np.argmax(normals[valid_pushes][:,2]) # index of best 
         best_ind = np.arange(self.num_samples)[valid_pushes][best_valid_ind]
-        
-        self.toppling_model.load_object(state)
-        poses, vertex_probs, min_required_forces = self.toppling_model.predict(
-            [vertices[best_ind]], 
-            [normals[best_ind]], 
-            [-normals[best_ind]], 
-            use_sensitivity=self.use_sensitivity
-        )
         
         start_position = vertices[best_ind] + normals[best_ind] * .015
         end_position = vertices[best_ind] - normals[best_ind] * .04
@@ -427,9 +422,8 @@ class RandomTopplePolicy(TopplePolicy):
             start_pose,
             end_pose,
             metadata={
-                'vertex_probs': vertex_probs[0],
-                'min_required_forces': min_required_forces,
-                'final_poses': poses
+                'vertex': vertices[best_ind],
+                'normals': normals[best_ind],
             }
         )
 

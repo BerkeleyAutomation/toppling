@@ -10,7 +10,7 @@ policy:
   #grasping_policy_config_filename: cfg/tools/dexnet_greedy_parallel_jaw.yaml
   grasping_policy_config_filename: cfg/tools/dexnet_greedy_suction.yaml
   thresh: 0.15
-  log: 1
+  log: 0
 
 model:
   fraction_before_short_circuit: 0.4
@@ -29,8 +29,8 @@ model:
 
   load: 1
   datasets:
-    mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet
-    #ycb: /nfs/diskstation/db/toppling/ycb/
+    mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet_scaled
+    ycb: /nfs/diskstation/db/toppling/ycb/
 
 # ray params
 ray:
@@ -297,7 +297,7 @@ action_space:
 state_space:
   urdf_cache_dir: /nfs/diskstation/projects/dex-net/objects/urdf/dexnet_4_v2
 
-  replace: 0
+  replace: 1
   samples_per_object: 1
   use_box: 0 # pose 2
 
@@ -335,16 +335,28 @@ state_space:
     # #    - bar_clamp
     #   # ycb: all
 
-    database_path: /nfs/diskstation/db/toppling0.hdf5
+    database_path: /nfs/diskstation/db/toppling2.hdf5
     object_keys:
-     mini_dexnet:
-       # - endstop_holder
-       # - gearbox # pose 8
-       # - yoda # pose 2
-       # - vase
-       # - pipe_connector
-       - pawn # pose 6, 8?
-       # - bar_clamp
+    #  mini_dexnet:
+    #    - gearbox_scaled # pose 1
+    #    - yoda # pose 6
+    #    - vase
+    #    - pipe_connector
+    #    - pawn # pose 5
+    #    - bar_clamp
+      ycb: all
+      mini_dexnet: all
+
+    #database_path: /nfs/diskstation/db/toppling0.hdf5
+    #object_keys:
+    #  mini_dexnet:
+    #    # - endstop_holder
+    #    # - gearbox # pose 8
+    #    # - yoda # pose 2
+    #    # - vase
+    #    # - pipe_connector
+    #    - pawn # pose 6, 8?
+    #    # - bar_clamp
       
     #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
     #object_keys:

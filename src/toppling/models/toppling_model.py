@@ -4,6 +4,7 @@ import math
 import json
 from copy import deepcopy
 from time import time
+from itertools import groupby
 
 from autolab_core import RigidTransform, PointCloud, Point, TensorDataset
 from toppling import normalize, stable_pose, pose_diff, is_equivalent_pose, up
@@ -507,11 +508,17 @@ class TopplingModel():
 class TopplingDatasetModel():
     def __init__(self, datasets):
         self.datasets = {dataset_name:TensorDataset.open(datasets[dataset_name]) for dataset_name in datasets.keys()}
-        self.obj_ids = {}
+        self.obj_ids, self.id_to_datapoint = {}, []
         for dataset_name in datasets.keys():
             with open(datasets[dataset_name]+"/obj_ids.json", "r") as read_file:
-                self.obj_ids[dataset_name] = json.load(read_file)
-
+                obj_ids = json.load(read_file)
+            dataset = self.datasets[dataset_name]
+            for i in range(dataset.num_datapoints):
+                datapoint = dataset.datapoint(i)
+                self.id_to_datapoint.append((datapoint['obj_id'], i))
+            self.obj_ids[dataset_name] = obj_ids
+        self.id_to_datapoint = {k: list(v) for k, v in groupby(self.id_to_datapoint, key=lambda x: x[0])}
+        
     def load_object(self, state):
         self.obj = state.obj
         self.com = self.obj.mesh.center_mass
@@ -522,10 +529,12 @@ class TopplingDatasetModel():
         self.datapoint = None
 
         similarity = np.inf
-        for i in range(dataset.num_datapoints):
+        obj_specific_datapoints = self.id_to_datapoint[obj_ids[self.obj.key]]
+        #for i in range(dataset.num_datapoints):
+        for _, i in obj_specific_datapoints:
             datapoint = dataset.datapoint(i)
-            if obj_ids[self.obj.key] != datapoint['obj_id']:
-                continue
+            #if obj_ids[self.obj.key] != datapoint['obj_id']:
+            #    continue
 
             rot, trans = RigidTransform.rotation_and_translation_from_matrix(datapoint['obj_pose'])
             obj_pose = RigidTransform(rot, trans, 'obj', 'world')
