@@ -5,7 +5,7 @@ import colorsys
 import random
 from copy import deepcopy
 
-from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
+from autolab_core import Point, RigidTransform, YamlConfig
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv
 from dexnet.visualization import DexNetVisualizer3D as vis3d
@@ -22,6 +22,10 @@ teal = [0,1,1]
 pastel_orange = np.array([248,184,139])/255.0
 pastel_blue = np.array([178,206,254])/255.0
 light_blue = np.array([0.67843137, 0.84705882, 0.90196078])
+
+def to_rigid(mat):
+    rot, trans = RigidTransform.rotation_and_translation_from_matrix(mat)
+    return RigidTransform(rot, trans, 'obj', 'world')
 
 def vis_axes(origin, y_dir):
     y = [origin, origin + .0075*y_dir]
@@ -180,7 +184,7 @@ def figure_3():
     from dexnet.grasping import GraspableObject3D
     env.state.obj = GraspableObject3D(mesh)
     env.render_3d_scene()
-    bottom_points = action.metadata['bottom_points']
+    bottom_points = policy.toppling_model.bottom_points
     vis3d.plot3d(bottom_points[:2], color=[0,0,0], tube_radius=.0005)
     vis3d.points(Point(bottom_points[0]), color=[0,0,0], scale=.001)
     vis3d.points(Point(bottom_points[1]), color=[0,0,0], scale=.001)
@@ -200,17 +204,19 @@ def figure_3():
     #     vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
     #     vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
     #     t += .002
-    x = np.cross(y_dir, up)
-    t = .01
-    arrow_dir = x
-    start_point = origin - t*y_dir
-    end_point = start_point + .0075*arrow_dir
-    shaft_points = [start_point, end_point]
-    h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(x)
-    h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(x)
-    head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
-    vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
-    vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
+
+    ## try 2
+    #x = np.cross(y_dir, up)
+    #t = .01
+    #arrow_dir = x
+    #start_point = origin - t*y_dir
+    #end_point = start_point + .0075*arrow_dir
+    #shaft_points = [start_point, end_point]
+    #h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(x)
+    #h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(x)
+    #head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
+    #vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
+    #vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
     
     # t = .000
     # while t < np.linalg.norm(origin - bottom_points[1]):
@@ -224,20 +230,11 @@ def figure_3():
     #     vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
     #     vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
     #     t += .002
-    
-    t = .004
-    arrow_dir = x
-    start_point = origin + t*y_dir
-    end_point = start_point + .0075*arrow_dir
-    shaft_points = [start_point, end_point]
-    h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(arrow_dir)
-    h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(arrow_dir)
-    head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
-    vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
-    vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
-
-    #arrow_dir = np.cross(y_dir, up)
-    #start_point = origin - .01*y_dir
+   
+    ## try 2
+    #t = .004
+    #arrow_dir = x
+    #start_point = origin + t*y_dir
     #end_point = start_point + .0075*arrow_dir
     #shaft_points = [start_point, end_point]
     #h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(arrow_dir)
@@ -246,17 +243,27 @@ def figure_3():
     #vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
     #vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
 
-    #arrow_dir = -up
-    #end_point = start_point + .0075*arrow_dir
-    #shaft_points = [start_point, end_point]
-    #h1 = np.array([[1,0,0],[0,0.7071,-0.7071],[0,0.7071,0.7071]]).dot(arrow_dir)
-    #h2 = np.array([[1,0,0],[0,0.7071,0.7071],[0,-0.7071,0.7071]]).dot(arrow_dir)
-    #head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
-    #vis3d.plot3d(shaft_points, color=teal, tube_radius=.0002)
-    #vis3d.plot3d(head_points, color=teal, tube_radius=.0002)
-    #
-    #vis3d.points(Point(start_point), color=[0,1,0], scale=.001)
-    #vis_axes(origin, y_dir)
+    arrow_dir = np.cross(y_dir, up)
+    start_point = origin - .01*y_dir
+    end_point = start_point + .0075*arrow_dir
+    shaft_points = [start_point, end_point]
+    h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(arrow_dir)
+    h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(arrow_dir)
+    head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
+    vis3d.plot3d(shaft_points, color=purple, tube_radius=.0002)
+    vis3d.plot3d(head_points, color=purple, tube_radius=.0002)
+
+    arrow_dir = -up
+    end_point = start_point + .0075*arrow_dir
+    shaft_points = [start_point, end_point]
+    h1 = np.array([[1,0,0],[0,0.7071,-0.7071],[0,0.7071,0.7071]]).dot(arrow_dir)
+    h2 = np.array([[1,0,0],[0,0.7071,0.7071],[0,-0.7071,0.7071]]).dot(arrow_dir)
+    head_points = [end_point - 0.001*h2, end_point, end_point - 0.001*h1]
+    vis3d.plot3d(shaft_points, color=blue, tube_radius=.0002)
+    vis3d.plot3d(head_points, color=blue, tube_radius=.0002)
+    
+    vis3d.points(Point(start_point), color=[0,1,0], scale=.001)
+    vis_axes(origin, y_dir)
     vis3d.show(starting_camera_pose=CAMERA_POSE)
     sys.exit()
 
@@ -298,6 +305,7 @@ if __name__ == '__main__':
     print '\n\nSaving to file' if args.save else '\n\nDisplaying in a window'
 
     config = YamlConfig(args.config_filename)
+    config['model']['load'] = 0
     policy = SingleTopplePolicy(config, use_sensitivity=True)
 
     if config['debug']:
@@ -335,21 +343,36 @@ if __name__ == '__main__':
         # vis3d.show(starting_camera_pose=CAMERA_POSE)
 
         env.state.obj.T_obj_world.translation += np.array([-.01,-.05,.001])
-        from dexnet.envs import NoActionFoundException
-        try:
-            action = policy.grasping_policy.action(env.state)
-            print 'q', action.q_value
-            vis3d.gripper(env.gripper(action), action.grasp(env.gripper(action)))
-        except NoActionFoundException as e:
-            from dexnet.grasping import GripperType
-            vis3d.mesh(env._grippers[GripperType.SUCTION].mesh)
+        # from dexnet.envs import NoActionFoundException
+        # try:
+        #     action = policy.grasping_policy.action(env.state)
+        #     print 'q', action.q_value
+        #     vis3d.gripper(env.gripper(action), action.grasp(env.gripper(action)))
+        # except NoActionFoundException as e:
+        #     from dexnet.grasping import GripperType
+        #     vis3d.mesh(env._grippers[GripperType.SUCTION].mesh)
 
         env.render_3d_scene()        
         vis3d.show(starting_camera_pose=CAMERA_POSE)
 
+        obj_config = config['state_space']['object']
+        all_poses, _ = env.state.obj.mesh.compute_stable_poses(
+            sigma=obj_config['stp_com_sigma'],
+            n_samples=obj_config['stp_num_samples'],
+            threshold=.001
+        )
+        # for pose in all_poses:
+        #     env.state.obj.T_obj_world = to_rigid(pose)
+        #     env.render_3d_scene()
+        #     vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+        mesh = trimesh.load('~/Downloads/chris.stl')
+        vis3d.mesh(mesh)
+        vis3d.show()
+
     #figure_1()
     #figure_2()
-    #figure_3()
+    figure_3()
     # figure_0()
     action = policy.action(env.state)
     #noise_vis()

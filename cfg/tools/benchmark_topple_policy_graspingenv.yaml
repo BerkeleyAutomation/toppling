@@ -23,11 +23,11 @@ model:
   
   finger_sigma: 0.0007
   push_direction_sigma: .07
-  n_trials: 50
+  n_trials: 100
   max_force: 400 # 10x the average for gearbox
   log: 0
 
-  load: 1
+  load: 0
   datasets:
     mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet_scaled
     ycb: /nfs/diskstation/db/toppling/ycb/
@@ -311,16 +311,16 @@ state_space:
 
   object: 
 
-    # database_path: /nfs/diskstation/db/toppling.hdf5
-    # object_keys:
-    #  mini_dexnet:
-    #    # - gearbox # pose 0
-    #    # - vase
-    #    # - pawn # pose 8
-    #    - pipe_connector
-    #    # - endstop_holder
-    #    # - part3
-    #    # - bar_clamp
+    database_path: /nfs/diskstation/db/toppling.hdf5
+    object_keys:
+      mini_dexnet:
+        # - gearbox # pose 0
+        # - vase
+        - pawn # pose 8
+        # - pipe_connector
+        # - endstop_holder
+        # - part1
+        # - bar_clamp
      # adversarial:
      #  - yoda # pose 4
 
@@ -335,17 +335,17 @@ state_space:
     # #    - bar_clamp
     #   # ycb: all
 
-    database_path: /nfs/diskstation/db/toppling2.hdf5
-    object_keys:
-    #  mini_dexnet:
-    #    - gearbox_scaled # pose 1
-    #    - yoda # pose 6
-    #    - vase
-    #    - pipe_connector
-    #    - pawn # pose 5
-    #    - bar_clamp
-      ycb: all
-      mini_dexnet: all
+    # database_path: /nfs/diskstation/db/toppling2.hdf5
+    # object_keys:
+    # #  mini_dexnet:
+    # #    - gearbox_scaled # pose 1
+    # #    - yoda # pose 6
+    # #    - vase
+    # #    - pipe_connector
+    # #    - pawn # pose 5
+    # #    - bar_clamp
+    #   ycb: all
+    #  # mini_dexnet: all
 
     #database_path: /nfs/diskstation/db/toppling0.hdf5
     #object_keys:
@@ -358,13 +358,13 @@ state_space:
     #    - pawn # pose 6, 8?
     #    # - bar_clamp
       
-    #database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
-    #object_keys:
-    #  adversarial:
-    #    #- demon_helmet # pose 1
-    #    - yoda # pose 7
-        #- grip
-        #- part3 # pose 4
+    # database_path: /nfs/diskstation/projects/dex-net/db/corl2018.hdf5
+    # object_keys:
+    #   adversarial:
+    #     # - demon_helmet # pose 1
+    #     # - yoda # pose 7
+    #     # - grip
+    #     # - part3 # pose 4
 
     planar_translation:  
       min:

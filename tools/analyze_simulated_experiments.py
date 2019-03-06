@@ -7,6 +7,8 @@ if __name__ == '__main__':
     vi_increases, vi_planning_times, vi_path_lengths = [], [], []
     g_increases, g_planning_times, g_path_lengths = [], [], []
     rand_increases, rand_planning_times, rand_path_lengths = [], [], []
+
+    improvable_initial_q, non_improvable_initial_q = [], []
     with open('/home/chriscorrea14/toppling_simulated1551496920.log', 'r') as file:
         i = 0
         for line in file:
@@ -43,7 +45,9 @@ if __name__ == '__main__':
             if line == '\n':
                 i += 1
                 if (vi_no_actions and g_no_actions) or (vi_already_best and g_already_best):
+                    non_improvable_initial_q.append(current_quality)
                     continue
+                improvable_initial_q.append(current_quality)
                 vi_increases.append(vi_final_quality - current_quality)
                 g_increases.append(g_final_quality - current_quality)
                 rand_increases.append(rand_final_quality - current_quality)
@@ -66,6 +70,16 @@ if __name__ == '__main__':
     print 'vi path length', np.mean(vi_path_lengths)
     print 'g path length', np.mean(g_path_lengths)
     print 'rand planning time', np.mean(rand_planning_times)
+
+    plt.hist(non_improvable_initial_q, bins=10)
+    plt.title('Initial Grasp Quality for Examples where Toppling is not Useful')
+    plt.show()
+    plt.hist(improvable_initial_q, bins=10)
+    plt.title('Initial Grasp Quality for Examples where Toppling is Useful')
+    plt.show()
+    plt.hist(vi_increases, bins=10)
+    plt.title('Increase in Grasp Quality for the Value Iteration Policy')
+    plt.show()
 
     plt.style.use('seaborn-darkgrid')
     plt.rcParams.update({'font.size': 30})

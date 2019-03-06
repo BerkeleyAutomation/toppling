@@ -407,13 +407,18 @@ if __name__ == '__main__':
                     else:
                         pose_diffs.append(np.inf)
 
+                # saving data to datapoint
+                env.state.obj.T_obj_world = orig_pose
+                action = policy.action(env.state, push_idx)
                 vertex = action.metadata['vertices'][push_idx]
                 normal = action.metadata['normals'][push_idx]
-                dataset_name = env.state.obj.key.split('~')[0]
+                dataset_name = env.state.obj.key.split(KEY_SEP_TOKEN)[0]
                 datapoint['obj_id'] = policy.toppling_model.obj_ids[dataset_name][env.state.obj.key]
                 datapoint['obj_pose'] = orig_pose
-                datapoint['vertex'] = (s2r.inverse() * Point(vertex, 'world')).data.T
-                datapoint['normal'] = (s2r.inverse() * Point(normal, 'world')).data.T
+                # datapoint['vertex'] = (s2r.inverse() * Point(vertex, 'world')).data.T
+                # datapoint['normal'] = (s2r.inverse() * Point(normal, 'world')).data.T
+                datapoint['vertex'] = vertex
+                datapoint['normal'] = normal
                 datapoint['fraction_toppled'] = np.mean(num_toppled)
                 datapoint['pose_diffs'] = np.array(pose_diffs)
                 print datapoint

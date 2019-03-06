@@ -517,7 +517,7 @@ class TopplingDatasetModel():
                 datapoint = dataset.datapoint(i)
                 self.id_to_datapoint.append((datapoint['obj_id'], i))
             self.obj_ids[dataset_name] = obj_ids
-        self.id_to_datapoint = {k: list(v) for k, v in groupby(self.id_to_datapoint, key=lambda x: x[0])}
+        self.id_to_datapoint = {k: list(v) for k, v in groupby(self.id_to_datapoint, key=lambda x: x[0])} 
         
     def load_object(self, state):
         self.obj = state.obj
