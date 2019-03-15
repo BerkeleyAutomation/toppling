@@ -1,0 +1,41 @@
+03-08 16:55:47 root       INFO     Root logger now logging to logs/grasp_computation_2019-03-08T16:55:47.030281.log
+03-08 16:55:47 tools/compute_grasp_metrics.py INFO     Opening database /nfs/diskstation/db/toppling0.hdf5
+03-08 16:55:47 tools/compute_grasp_metrics.py INFO     Opening dataset adversarial
+03-08 16:55:47 tools/compute_grasp_metrics.py INFO     Computing grasp metric robust_suction_wrench_resistance for object demon_helmet and gripper righthand
+03-08 16:55:47 DexNet     INFO     Sampling grasps for object demon_helmet
+03-08 16:55:47 DexNet     INFO     Sampling grasps
+03-08 16:55:47 MeshSuctionGraspSampler INFO     Starting sampling iteration 1
+03-08 16:55:47 MeshSuctionGraspSampler INFO     Number of initial grasps: 223
+03-08 16:55:47 MeshSuctionGraspSampler INFO     Number of pruned grasps: 223
+03-08 16:55:47 MeshSuctionGraspSampler INFO     223/100 grasps found after iteration 1
+03-08 16:55:47 MeshSuctionGraspSampler INFO     Truncating 223 grasps to 100.
+03-08 16:55:47 MeshSuctionGraspSampler INFO     Found 100 grasps.
+03-08 16:55:47 DexNet     INFO     Sampling grasps took 0.408 sec
+03-08 16:55:47 DexNet     INFO     Computing grasp metric robust_suction_wrench_resistance for object demon_helmet
+03-08 16:55:47 DexNet     INFO     Computing metrics
+03-08 16:55:47 DexNet     INFO     Computing metric robust_suction_wrench_resistance
+03-08 16:55:47 DexNet     INFO     Computing metric for grasp 1 of 100
+03-08 16:55:48 DexNet     INFO     Q comp took 0.3806 sec
+03-08 16:55:51 DexNet     INFO     Computing metric for grasp 11 of 100
+03-08 16:55:52 DexNet     INFO     Q comp took 0.3325 sec
+03-08 16:55:55 DexNet     INFO     Computing metric for grasp 21 of 100
+03-08 16:55:56 DexNet     INFO     Q comp took 0.9121 sec
+03-08 16:56:01 DexNet     INFO     Computing metric for grasp 31 of 100
+03-08 16:56:01 DexNet     INFO     Q comp took 0.6137 sec
+03-08 16:56:05 DexNet     INFO     Computing metric for grasp 41 of 100
+03-08 16:56:05 DexNet     INFO     Q comp took 0.1666 sec
+03-08 16:56:09 DexNet     INFO     Computing metric for grasp 51 of 100
+03-08 16:56:09 DexNet     INFO     Q comp took 0.1793 sec
+03-08 16:56:12 DexNet     INFO     Computing metric for grasp 61 of 100
+03-08 16:56:12 DexNet     INFO     Q comp took 0.5193 sec
+03-08 16:56:16 DexNet     INFO     Computing metric for grasp 71 of 100
+03-08 16:56:17 DexNet     INFO     Q comp took 0.4617 sec
+03-08 16:56:21 DexNet     INFO     Computing metric for grasp 81 of 100
+03-08 16:56:21 DexNet     INFO     Q comp took 0.1751 sec
+03-08 16:56:23 DexNet     INFO     Computing metric for grasp 91 of 100
+03-08 16:56:23 DexNet     INFO     Q comp took 0.1692 sec
+03-08 16:56:26 DexNet     INFO     Computing metrics took 39.254 sec
+03-08 16:56:26 DexNet     INFO     Closing database
+03-08 16:56:26 tools/compute_grasp_metrics.py INFO     Total metric computation time was 39.857 sec
+03-08 16:56:26 tools/compute_grasp_metrics.py INFO     Computing all metrics took 39.904 sec
+03-08 16:56:26 rospy.core INFO     signal_shutdown [atexit]

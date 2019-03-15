@@ -32,8 +32,30 @@ class TopplingModel():
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
         self.max_force = config['max_force']
         self.log = config['log']
+        self.baseline = config['baseline']
         if obj != None:
             self.load_object(obj)
+
+    def readable_str(self):
+        return 'ground friction~N({}, {}), finger friction~N({}, {}), c_f~N(c_f, {}I), f_f~N(f_f, {}I) {}'.format(
+           self.ground_friction_coeff, self.ground_friction_sigma,
+           self.finger_friction_coeff, self.finger_friction_sigma,
+           self.finger_sigma, self.push_direction_sigma,
+           'baseline' if self.baseline else ''
+        )
+
+    def __str__(self):
+        #return 'Toppling Model, ground_friction_coeff: {}, ground_friction_sigma: {}, finger_friction_coeff: {}, finger_friction_sigma: {}'.format(
+        #    self.ground_friction_coeff, self.ground_friction_sigma,
+        #    self.finger_friction_coeff, self.finger_friction_sigma
+        #)
+        return ', '.join([
+            '$\mu_T\sim\mathcal{{N}}({:.4f}, {})'.format(self.ground_friction_coeff, self.ground_friction_sigma),
+            '\mu_f\sim\mathcal{{N}}({:.4f}, {})'.format(self.finger_friction_coeff, self.finger_friction_sigma),
+            '\mathbf{{c}}_f\sim\mathcal{{N}}(\mathbf{{c}}_f, {:.2e}\cdot I)'.format(self.finger_sigma),
+            '\mathbf{{f}}_f\sim\mathcal{{N}}(\mathbf{{f}}_f, {:.4}\cdot I)$'.format(self.push_direction_sigma)
+        ])
+            
 
     def load_object(self, obj):
         """
@@ -170,6 +192,8 @@ class TopplingModel():
         -------
         float
         """
+        if self.baseline:
+            return 0
         r = vertex - com_projected_on_edge
         r[2] = 0
         max_z_torque_dir = normalize(np.cross(r, up))
@@ -529,12 +553,13 @@ class TopplingDatasetModel():
         self.datapoint = None
 
         similarity = np.inf
+        # for i in range(dataset.num_datapoints):
+        # for i in [101]:
         obj_specific_datapoints = self.id_to_datapoint[obj_ids[self.obj.key]]
-        #for i in range(dataset.num_datapoints):
         for _, i in obj_specific_datapoints:
             datapoint = dataset.datapoint(i)
-            #if obj_ids[self.obj.key] != datapoint['obj_id']:
-            #    continue
+            if obj_ids[self.obj.key] != datapoint['obj_id']:
+               continue
 
             rot, trans = RigidTransform.rotation_and_translation_from_matrix(datapoint['obj_pose'])
             obj_pose = RigidTransform(rot, trans, 'obj', 'world')

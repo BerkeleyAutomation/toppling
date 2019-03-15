@@ -8,6 +8,7 @@ import cv2
 import time
 import sys, traceback
 import subprocess
+import json
 from plyfile import PlyElement, PlyData
 
 import autolab_core.utils as utils
@@ -20,7 +21,7 @@ from ambidex.class_registry import postgres_base_cls_map, full_cls_list
 from perception import RenderMode, PointToPlaneICPSolver, PointToPlaneFeatureMatcher, RgbdSensorFactory
 from meshrender import Scene, MaterialProperties, SceneObject, VirtualCamera, SceneViewer
 from toppling.policies import TestTopplePolicy
-from toppling import is_equivalent_pose, camera_pose, pose_diff
+from toppling import is_equivalent_pose, camera_pose, pose_angle
 
 
 SEED = 107
@@ -211,7 +212,7 @@ def sim_to_real_tf(sim_point_cloud_masked, vis=False):
         vis3d.figure()
         vis3d.points(phys_point_cloud_masked.data.T, color=(1,0,0), scale=.001)
         vis3d.points((sim_to_real_tf*sim_point_cloud_masked).data.T, color=(0,1,0), scale=.001)
-        vis3d.show()
+        vis3d.show(title='Predicted pose from Sim 2 Real')
     return sim_to_real_tf
 
 def get_dataset(config, args):
@@ -240,6 +241,7 @@ if __name__ == '__main__':
     rospy.init_node('test_toppling', anonymous=True)
 
     config = YamlConfig(args.config_filename)
+    config['model']['load'] = 1
     policy = TestTopplePolicy(config, use_sensitivity=True)
 
     if config['debug']:
@@ -290,13 +292,16 @@ if __name__ == '__main__':
         dataset = get_dataset(config, args)
         datapoint = dataset.datapoint_template
 
+        obj_id, obj_id_to_key = 0, {}
         while not rospy.is_shutdown():
             try:
                 env.reset()
             except NoRemainingSamplesException:
                 break
+            obj_id_to_key[obj_id] = env.state.obj.key
+            print '\n\n\n\n\n\n\n\n\n\nSampled object', env.state.obj.key
 
-            env.state.obj.T_obj_world.translation[0] += .25 # put object in bin, not outside it
+            env.state.obj.T_obj_world.translation[0] += .4 # put object in bin, not outside it
             env.state.material_props._color = np.array([0.5] * 3)
             policy.set_environment(env.environment)
             
@@ -309,103 +314,110 @@ if __name__ == '__main__':
                 threshold=obj_config['stp_min_prob']
             )
 
-            for _ in range(1):
+            for push_num in range(10):
                 push_idx = None
+                # push_idx = 33
                 sample_id = 0
-                num_toppled, pose_diffs = [], []
-                print '\n\n\n\n\n\nSTARTING DIFFERENT PUSH'
-                while sample_id < 3:
+                num_toppled, pose_angles, actual_poses = [], [], []
+                print '\n\n\n\n\n\nSTARTING DIFFERENT PUSH', push_num
+                while sample_id < 10:
                     sample_id += 1
                     # sim_point_cloud_masked = get_sim_point_cloud(depth_scene, env.state.obj)
                     usr_input = 'n'
-                    while usr_input != 'y':
-                        usr_input = utils.keyboard_input('\n\nPress y to start the next TRIAL. Press v to visualize state [y/n/v]:')
+                    while usr_input != 'y' and usr_input != 'a':
+                        usr_input = utils.keyboard_input('\n\nPut the object in position y: continue, v: vis pose, a: abort push[y/v/a]:')
                         if usr_input == 'v':
                             vis3d.figure()
+                            env.state.obj.T_obj_world = orig_pose
                             env.render_3d_scene()
-                            vis3d.show(camera_pose=CAMERA_POSE)
+                            vis3d.show(starting_camera_pose=CAMERA_POSE)
+                    if usr_input == 'a':
+                        print 'trying different push'
+                        push_idx = None
+                        sample_id = 0
+                        num_toppled, pose_angles, actual_poses = [], [], []
+                        continue
 
                     usr_input = 'n'
                     while usr_input != 'y':
                         s2r = sim_to_real_tf(sim_point_cloud_masked, vis=True)
-                        usr_input = utils.keyboard_input('Did it correctly predict the pose? [y/n]:')
+                        usr_input = utils.keyboard_input('Did the pose registration work? [y/n]:')
                     env.state.obj.T_obj_world = s2r*orig_pose
 
                     # Plan topple action
                     action = policy.action(env.state, push_idx)
-                    push_idx = action.metadata['best_ind']
-                    final_poses = action.metadata['final_poses']
-                    vertex_probs = action.metadata['vertex_probs'] 
 
-                    # if args.topple_probs:
-                    if False:
+                    if args.topple_probs:# and push_idx == None:
                         vis3d.figure()
                         env.render_3d_scene()
                         for vertex, prob in zip(action.metadata['vertices'], action.metadata['topple_probs']):
                            color = [min(1, 2*(1-prob)), min(2*prob, 1), 0]
                            vis3d.points(Point(vertex, 'world'), scale=.001, color=color)
                         gripper = env.gripper(action)
-                        T_start_world = action.T_begin_world * gripper.T_mesh_grasp
-                        T_end_world = action.T_end_world * gripper.T_mesh_grasp
-                        vis3d.plot3d([action.T_begin_world.translation, action.T_end_world.translation], color=(0,1,0), tube_radius=.0006)
-                        vis3d.show(camera_pose=CAMERA_POSE)
+                        # vis3d.plot3d([action.T_begin_world.translation, action.T_end_world.translation], color=(0,1,0), tube_radius=.0006)
+                        pose = action.T_begin_world
+                        vis3d.plot3d([pose.translation, pose.translation + .01*pose.x_axis], color=[1,0,0], tube_radius=.0006)
+                        vis3d.plot3d([pose.translation, pose.translation + .01*pose.y_axis], color=[0,1,0], tube_radius=.0006)
+                        vis3d.plot3d([pose.translation, pose.translation + .01*pose.z_axis], color=[0,0,1], tube_radius=.0006)
+                        try:
+                            vis3d.show(starting_camera_pose=CAMERA_POSE)
+                        except KeyboardInterrupt:
+                            print 'trying different push'
+                            push_idx = None
+                            sample_id = 0
+                            num_toppled, pose_angles, actual_poses = [], [], []
+                            continue
+
+                    push_idx = action.metadata['best_ind']
+                    final_poses = action.metadata['final_poses']
+                    vertex_probs = action.metadata['vertex_probs'][push_idx]
 
                     # Execute action
                     phys_robot.execute(action)
-                    did_topple = utils.keyboard_input('Did it topple? [y/n]:')
-                    num_toppled.append(1 if did_topple else 0)
 
-                    # # record final pose
-                    # predicted_pose = final_poses[np.argmax(vertex_probs[push_idx])]
-                    # env.state.obj.T_obj_world = predicted_pose
-                    # sim_point_cloud_masked = get_sim_point_cloud(depth_scene, env.state.obj)
-                    # usr_input = 'n'
-                    # while usr_input != 'y':
-                    #     final_pose_s2r = sim_to_real_tf(sim_point_cloud_masked, vis=True)
-                    #     usr_input = utils.keyboard_input('Did it correctly predict the pose? [y/n]:')
-                    # env.state.obj.T_obj_world = orig_pose
-
-                    # # check if final pose is as predicted
-                    # pose_diff = pose_diff(predicted_pose, final_pose_s2r*predicted_pose)
-                    # print 'pose diff', pose_diff
-                    # pose_diffs.append(pose_diff)
-                    # sample_id += 1
-
-                    if did_topple:
-                        print 'aaaa', vertex_probs[push_idx]
-                        predicted_pose = final_poses[np.argmax(vertex_probs[push_idx])]
-                        env.state.obj.T_obj_world = predicted_pose
-                        usr_input = 'v'
-                        while not (usr_input == 'y' or usr_input == 'n'):
+                    # loops back if they always hit "n"
+                    usr_input = 'n'
+                    while usr_input != 'y':
+                        # descending order
+                        for pose_ind in np.argsort(-vertex_probs):
+                            actual_pose = final_poses[pose_ind]
+                            env.state.obj.T_obj_world = actual_pose
                             env.render_3d_scene()
-                            vis3d.show()
-                            usr_input = utils.keyboard_input('Did it correctly predict the pose? Press v to visualize state [y/n/v]')
-                        correct_final_pose = usr_input == 'y'
-
-                        if usr_input == 'y':
-                            pose_diffs.append(0)
-                        else:
-                            while usr_input != 'y':
-                                # stable_poses = final_poses[np.argmax(vertex_probs)]
-                                print 'bn', np.argsort(vertex_probs)
-                                for actual_pose in final_poses[np.argsort(vertex_probs)]:
-                                    rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose)
-                                    actual_pose = RigidTransform(rot, trans, 'obj', 'world')
-                                    env.state.obj.T_obj_world = actual_pose
-                                    env.render_3d_scene()
-                                    vis3d.show(camera_pose=CAMERA_POSE)
-                                    usr_input = utils.keyboard_input('Is it in this pose? [y/n]')
-                                    if usr_input == 'y':
-                                        break
-                                if usr_input != 'y':
-                                    print 'looping back'
-                            E_pose_diff = 0
-                            for prob, final_pose in zip(vertex_probs[push_idx], final_poses):
-                                E_pose_diff += prob * pose_diff(predicted_pose, actual_pose)
-                                print E_pose_diff
-                            pose_diffs.append(E_pose_diff)
-                    else:
-                        pose_diffs.append(np.inf)
+                            vis3d.show(
+                                starting_camera_pose=CAMERA_POSE, 
+                                title='Is this the pose after the topple? (Pose {} {:.2f}%)'.format(pose_ind, vertex_probs[pose_ind])
+                            )
+                            usr_input = utils.keyboard_input('Is it in this pose? [y/n]')
+                            if usr_input == 'y':
+                                actual_pose = actual_pose.matrix
+                                break
+                        if usr_input != 'y':
+                            # go through all stable poses
+                            obj_config = config['state_space']['object']
+                            stable_poses, _ = env.state.obj.mesh.compute_stable_poses(
+                                sigma=obj_config['stp_com_sigma'],
+                                n_samples=obj_config['stp_num_samples'],
+                                threshold=obj_config['stp_min_prob']
+                            )
+                            for actual_pose in stable_poses:
+                                rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose)
+                                env.state.obj.T_obj_world = RigidTransform(rot, trans, 'obj', 'world')
+                                env.render_3d_scene()
+                                vis3d.show(
+                                    starting_camera_pose=CAMERA_POSE, 
+                                    title='Is this the pose after the topple?'.format(pose_ind)
+                                )
+                                usr_input = utils.keyboard_input('Is it in this pose? [y/n]')
+                                if usr_input == 'y':
+                                    break
+                            if usr_input != 'y':
+                                print 'looping back'
+                    # E_pose_angle = 0
+                    # for prob, final_pose in zip(vertex_probs, final_poses):
+                    #     E_pose_angle += prob * pose_angle(final_pose, actual_pose)
+                    # pose_angles.append(E_pose_angle)
+                    num_toppled.append(1 if pose_ind != 0 else 0)
+                    actual_poses.append(actual_pose)
 
                 # saving data to datapoint
                 env.state.obj.T_obj_world = orig_pose
@@ -413,20 +425,24 @@ if __name__ == '__main__':
                 vertex = action.metadata['vertices'][push_idx]
                 normal = action.metadata['normals'][push_idx]
                 dataset_name = env.state.obj.key.split(KEY_SEP_TOKEN)[0]
-                datapoint['obj_id'] = policy.toppling_model.obj_ids[dataset_name][env.state.obj.key]
-                datapoint['obj_pose'] = orig_pose
-                # datapoint['vertex'] = (s2r.inverse() * Point(vertex, 'world')).data.T
-                # datapoint['normal'] = (s2r.inverse() * Point(normal, 'world')).data.T
+                datapoint['obj_id'] = obj_id
+                datapoint['obj_pose'] = orig_pose.matrix
                 datapoint['vertex'] = vertex
                 datapoint['normal'] = normal
                 datapoint['fraction_toppled'] = np.mean(num_toppled)
-                datapoint['pose_diffs'] = np.array(pose_diffs)
+                # datapoint['pose_angles'] = np.array(pose_angles)
+                datapoint['actual_poses'] = np.vstack(actual_poses)
                 print datapoint
                 dataset.add(datapoint)
+                dataset.flush()
                 # Reset push index, try different push
                 push_idx = None
+            obj_id += 1
+            print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
     except:
         traceback.print_exc(file=sys.stdout)
     dataset.flush()
+    with open(args.output+"/obj_keys.json", "w") as write_file:
+        json.dump(obj_id_to_key, write_file)
     phys_robot.stop()
 

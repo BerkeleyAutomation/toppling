@@ -34,13 +34,9 @@ def precision_recall(pos_probs, neg_probs, num_toppled, thresh):
     recall = true_pos / float(num_toppled)
     return thresh, precision, recall
 
-def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity):
-    # cross_entropy, total_datapoints = 0, 0
-    y_true, y_pred = [], []
-    # counter = 0
-    # n = 0
-    train_tvs, test_tvs, combined_tvs = [], [], []
-    train_l1s, test_l1s, combined_l1s = [], [], []
+def evaluate_models(models, datasets, obj_id_to_keys, env, use_sensitivity):
+    y_true, y_pred = [], [[]]
+    
     total_datapoints = 0
     for dataset, obj_id_to_key in zip(datasets, obj_id_to_keys):
         total_datapoints += dataset.num_datapoints
@@ -302,20 +298,20 @@ if __name__ == '__main__':
     datapoint_ordering = np.arange(total_datapoints)
     shuffle(datapoint_ordering)
 
-    pr_curve(datasets, obj_id_to_keys, env)
-    sys.exit()
+    # pr_curve(datasets, obj_id_to_keys, env)
+    # sys.exit()
 
-    logger.info('Baseline')
-    run_sweep(baseline_models, datasets, obj_id_to_keys, env, False)
-    logger.info('\n\n\nWith Rotations')
-    run_sweep(models, datasets, obj_id_to_keys, env, False)
-    logger.info('\n\n\nWith Robustness')
-    run_sweep(baseline_models, datasets, obj_id_to_keys, env, True)
-    logger.info('\n\n\nWith Rotations and Robustness')
-    run_sweep(models, datasets, obj_id_to_keys, env, True)
+    # logger.info('Baseline')
+    # run_sweep(baseline_models, datasets, obj_id_to_keys, env, False)
+    # logger.info('\n\n\nWith Rotations')
+    # run_sweep(models, datasets, obj_id_to_keys, env, False)
+    # logger.info('\n\n\nWith Robustness')
+    # run_sweep(baseline_models, datasets, obj_id_to_keys, env, True)
+    # logger.info('\n\n\nWith Rotations and Robustness')
+    # run_sweep(models, datasets, obj_id_to_keys, env, True)
 
-    # plot_pr_curve(models, datasets, obj_id_to_keys, env, False)
-    # plot_pr_curve(baseline_models, datasets, obj_id_to_keys, env, False)
+    plot_pr_curve(models, datasets, obj_id_to_keys, env, False)
+    plot_pr_curve(baseline_models, datasets, obj_id_to_keys, env, False)
 
 
 

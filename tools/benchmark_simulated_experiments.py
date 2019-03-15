@@ -6,6 +6,7 @@ import random
 import logging
 from time import time
 from copy import deepcopy
+import json
 
 from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
@@ -67,6 +68,7 @@ def forward_sim_random(env, policy):
     num_failed_actions = 0
     path_length = 0
     planning_time = 0
+    current_q = policy.quality(env.state)
     while num_failed_actions < 3:
         if curr_q == best_q or path_length == 10:
             break
@@ -76,21 +78,29 @@ def forward_sim_random(env, policy):
         planning_time += time()
 
         policy.toppling_model.load_object(env.state)
+        a = time()
         poses, vertex_probs, _ = policy.toppling_model.predict(
             [action.metadata['vertex']], 
             [action.metadata['normal']], 
             [-action.metadata['normal']], 
             use_sensitivity=policy.use_sensitivity
         )
+        print 'pred time', time() - a
         vertex_probs = vertex_probs[0]
 
         pose_ind = np.random.choice(np.arange(len(poses)), p=vertex_probs/np.sum(vertex_probs))
-        if pose_ind == 0:
-            num_failed_actions += 1
-        else:
+        # if pose_ind == 0:
+        #     num_failed_actions += 1
+        # else:
+        #     num_failed_actions = 0
+        #     env.state.T_obj_world = poses[pose_ind]
+        #     curr_q = policy.quality(env.state)
+        env.state.obj.T_obj_world = poses[pose_ind]
+        new_q = policy.quality(env.state)
+        if new_q > current_q:
             num_failed_actions = 0
-            env.state.T_obj_world = poses[pose_ind]
-            curr_q = policy.quality(env.state)
+        else:
+            num_failed_actions += 1
         path_length += 1
     logger.info('Random Final Quality: '+str(curr_q))
     return path_length, planning_time
@@ -100,8 +110,12 @@ def test_multi_push(env):
     policy = MultiTopplePolicy(config, use_sensitivity=True)
     config['model']['load'] = 0
     rand_policy = RandomTopplePolicy(config, use_sensitivity=True)
+    with open("/nfs/diskstation/db/toppling/tuned_params/obj_ids.json", "r") as read_file:
+        obj_ids = json.load(read_file)
     while True:
         env.reset()
+        if env.state.obj.key not in obj_ids:
+            continue
         env.state.material_props._color = np.array([0.5] * 3)
         policy.set_environment(env.environment)
         rand_policy.set_environment(env.environment)

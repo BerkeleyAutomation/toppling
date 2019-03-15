@@ -38,6 +38,23 @@ def stable_pose(R):
         R = R.matrix
     return StablePose(0, R, eq_thresh=.03, to_frame='world')
 
+def pose_angle(R1, R2):
+    """
+    Returns difference between two stable poses
+
+    Parameters
+    ----------
+    R1 : :obj:`autolab_core.RigidTransform`
+    R2 : :obj:`autolab_core.RigidTransform`
+
+    Returns
+    -------
+    int
+    """
+    z1 = R1.inverse().matrix[:,2]
+    z2 = R2.inverse().matrix[:,2]
+    return np.arccos(np.clip(z1.dot(z2), 0, 1))
+
 def pose_diff(R1, R2):
     """
     Returns difference between two stable poses
@@ -53,6 +70,9 @@ def pose_diff(R1, R2):
     """
     z1 = R1.inverse().matrix[:,2]
     z2 = R2.inverse().matrix[:,2]
+    # print z1, z2
+    # print np.array(R1.inverse().euler_angles)*180/np.pi
+    # print np.array(R2.inverse().euler_angles)*180/np.pi
     return np.linalg.norm(z1 - z2)
 
 def is_equivalent_pose(R1, R2):
@@ -69,7 +89,8 @@ def is_equivalent_pose(R1, R2):
     bool
     """
     diff = pose_diff(R1, R2)
-    return -.1 < diff and diff < .1
+    # return -.1 < diff and diff < .1
+    return -.2 < diff and diff < .2
 
 def camera_pose():
     CAMERA_ROT = np.array([[ 0,-1, 0],
