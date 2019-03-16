@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 vi_path_lengths.append(vi_path_length)
                 g_path_lengths.append(g_path_length)
                 rand_path_lengths.append(rand_path_length)
-    print i, len(vi_increases)
+    print 'Num Rollouts: {}, Num helpful: {}'.format(i, len(vi_increases))
     #print vi_increases
     print 'vi increase', np.mean(vi_increases)
     print 'g increase', np.mean(g_increases)

@@ -18,8 +18,8 @@ from toppling import camera_pose, is_equivalent_pose, pose_diff, pose_angle
 
 CAMERA_POSE = camera_pose()
 SEED = 107
-NUM_MODELS = 100
-NUM_MODELS_TO_KEEP = 10
+NUM_MODELS = 2
+NUM_MODELS_TO_KEEP = 1
 NUM_PER_DATAPOINT = 10
 K = 5
 
@@ -39,8 +39,7 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
     y_true, y_pred = [], []
     # counter = 0
     # n = 0
-    train_tvs, test_tvs, combined_tvs = [], [], []
-    train_l1s, test_l1s, combined_l1s = [], [], []
+    combined_tvs, combined_l1s, avg_precisions = [], [], []
     total_datapoints = 0
     for dataset, obj_id_to_key in zip(datasets, obj_id_to_keys):
         total_datapoints += dataset.num_datapoints
@@ -64,6 +63,7 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
             y_pred.extend([1-vertex_probs[0]] * NUM_PER_DATAPOINT)
 
             empirical_dist = []
+            pose_y_true, pose_y_pred = [], []
             for i in range(NUM_PER_DATAPOINT):
                 actual_pose_mat = datapoint['actual_poses'][i*4:(i+1)*4]
                 rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose_mat)
@@ -75,11 +75,23 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
                 for i in range(len(empirical_dist)):
                     actual_pose, actual_prob = empirical_dist[i]
                     if is_equivalent_pose(actual_pose, pose_to_add):
-                        empirical_dist[i][1] += .1
+                        empirical_dist[i][1] += 1 / float(NUM_PER_DATAPOINT)
                         found = True
                         break
                 if not found:
-                    empirical_dist.append([pose_to_add, .1])
+                    empirical_dist.append([pose_to_add, 1 / float(NUM_PER_DATAPOINT)])
+
+                found = False
+                for predicted_pose, predicted_prob in zip(predicted_poses, vertex_probs):
+                    if is_equivalent_pose(pose_to_add, predicted_pose):
+                        found = True
+                        pose_y_true.append(1)
+                    else:
+                        pose_y_true.append(0)
+                    pose_y_pred.append(predicted_prob)
+                if not found:
+                    pose_y_true.append(1)
+                    pose_y_pred.append(0)
             
             total_variation, l1 = 1, []
             for empirical_pose, empirical_prob in empirical_dist:
@@ -97,6 +109,7 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
             #     train_l1s.append(l1)
             combined_tvs.append(total_variation)
             combined_l1s.append(l1)
+            avg_precisions.append(metrics.average_precision_score(pose_y_true, pose_y_pred))
             # for i in range(10):
             #     actual_pose_mat = datapoint['actual_poses'][i*4:(i+1)*4]
             #     rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose_mat)
@@ -141,7 +154,7 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
     # prs.append((precision, recall, model))
     # return np.mean(train_tvs), np.mean(test_tvs), np.mean(combined_tvs), np.mean(train_l1s), np.mean(test_l1s), np.mean(combined_l1s)
     avg_precision = metrics.average_precision_score(y_true, y_pred)
-    return combined_tvs, combined_l1s, avg_precision, y_true, y_pred
+    return combined_tvs, combined_l1s, avg_precisions, (avg_precision, y_true, y_pred)
 
 # def run_sweep(models, datasets, obj_id_to_keys, test_set, env, use_sensitivity):
 #     train_tvs, test_tvs, combined_tvs = [], [], []
@@ -196,22 +209,31 @@ def pr_curve(datasets, obj_id_to_keys, env):
     model_config['finger_sigma'] = .000415
     model_config['push_direction_sigma'] = .07074
     model = TopplingModel(model_config)
-    _, _, avg_precision, y_true, y_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, True)
+    _, _, avg_precision, y_true, y_pred, pose_y_true, pose_y_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, True)
     precision, recall, thresh = metrics.precision_recall_curve(y_true, y_pred)
 
-    plt.style.use('seaborn-darkgrid')
-    plt.rcParams.update({'font.size': 20})
+    # plt.style.use('seaborn-darkgrid')
+    # plt.rcParams.update({'font.size': 20})
     plt.plot(recall, precision, label=model, linewidth=5.0)
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.show()
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.show()
 
-def plot_pr_curve(models, datasets, obj_id_to_keys, env, use_sensitivity):
+def plot_pr_curve(models, datasets, obj_id_to_keys, env, use_sensitivity, label):
+    y_trues, y_preds, avg_precisions = [], [], []
     for model in models:
-        _, _, _, y_true, y_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
+        _, _, _, y_true, y_pred, pose_y_true, pose_y_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
+        avg_precisions.append(metrics.average_precision_score(y_true, y_pred))
+        y_trues.append(y_true)
+        y_preds.append(y_pred)
+    best_model = np.argmax(avg_precisions)
+    print y_trues[best_model]
+    print y_preds[best_model]
+    precision, recall, thresh = metrics.precision_recall_curve(y_trues[best_model], y_preds[best_model])
+    plt.plot(recall, precision, label=label, linewidth=5.0)
 
 def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=False):
-    def compute_cv(metrics, idx):
+    def compute_cv(metrics, idx, use_max):
         metrics = metrics[:,idx]
 
         folds = np.array_split(metrics, K, axis=1)
@@ -226,32 +248,67 @@ def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=Fa
             avg_train = np.mean(train, axis=1)
             avg_test = np.mean(test, axis=1)
 
-            best_model_idx = np.argmin(avg_train)
+            if use_max:
+                best_model_idx = np.argmax(avg_train)
+            else:
+                best_model_idx = np.argmin(avg_train)
             cv.append(avg_test[best_model_idx])
         return np.mean(cv)
+    def compute_pr_cv(pose_y_trues, pose_y_preds, idx):
+        pose_y_trues = pose_y_trues[:,idx]
+        pose_y_preds = pose_y_preds[:,idx]
 
-    tvs, l1s = [], []
+        folds_y_true = np.array_split(pose_y_trues, K, axis=1)
+        folds_y_pred = np.array_split(pose_y_preds, K, axis=1)
+        cv = []
+        for k in range(K):
+            train_y_trues, train_y_preds = [], []
+            for i in range(K):
+                if i != k:
+                    train_y_true.append(folds_y_true[i])
+                    train_y_pred.append(folds_y_pred[i])
+            train_y_trues = np.hstack(train_y_trues)
+            train_y_preds = np.hstack(train_y_preds)
+            test_y_true = folds_y_true[k]
+            test_y_pred = folds_y_pred[k]
+
+            avg_train = []
+            for train_y_true, train_y_pred in zip(train_y_trues, train_y_preds):
+                avg_train = metrics.average_precision_score(train_y_true, train_y_pred)
+            
+            best_model_idx = np.argmin(avg_train)
+            cv.append(metrics.average_precision_score(test_y_true[best_model_idx], test_y_pred[best_model_idx]))
+        return np.mean(cv)
+
+    tvs, l1s, avg_ps = [], [], []
     best_avg_precision = 0
     for model in models:
-        tv, l1, avg_precision, y_true, y_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
-        print '{} TV: {} L1: {}'.format(model.readable_str(), np.mean(tv), np.mean(l1))
+        tv, l1, avg_p, (avg_precision, _, _) = evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
+        logger.info('{} TV: {} L1: {} Pose MAP: {} MAP: {}'.format(model.readable_str(), np.mean(tv), np.mean(l1), np.mean(avg_p), avg_precision))
         tvs.append(tv)
         l1s.append(l1)
+        avg_ps.append(avg_p)
+        # pose_y_trues.append(pose_y_true)
+        # pose_y_preds.append(pose_y_pred)
         if avg_precision > best_avg_precision:
             best_avg_precision = avg_precision
-            best_y_true = y_true
-            best_y_pred = y_pred
+        #     best_avg_precision = avg_precision
+        #     best_y_true = y_true
+        #     best_y_pred = y_pred
     tvs = np.vstack(tvs)
     l1s = np.vstack(l1s)
+    avg_ps = np.vstack(avg_ps)
 
     idx = np.arange(tvs.shape[1])
     shuffle(idx)
-    tv_cv = compute_cv(tvs, idx)
-    l1_cv = compute_cv(l1s, idx)
+    tv_cv = compute_cv(tvs, idx, False)
+    l1_cv = compute_cv(l1s, idx, False)
+    map_cv = compute_cv(avg_ps, idx, True)
+    # map_cv = compute_pr_cv(pose_y_trues, pose_y_preds, idx)
     
     if plot_pr:
         pr_curve(best_y_true, best_y_pred)
-    logger.info('Avg CV TV: {}, Avg CV L1: {}'.format(tv_cv, l1_cv))
+    logger.info('Avg CV TV: {}, Avg CV L1: {}, Avg CV (Avg Precision) {}, Best Avg Precision: {}'.format(tv_cv, l1_cv, map_cv, best_avg_precision))
 
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -302,8 +359,8 @@ if __name__ == '__main__':
     datapoint_ordering = np.arange(total_datapoints)
     shuffle(datapoint_ordering)
 
-    pr_curve(datasets, obj_id_to_keys, env)
-    sys.exit()
+    # pr_curve(datasets, obj_id_to_keys, env)
+    # sys.exit()
 
     logger.info('Baseline')
     run_sweep(baseline_models, datasets, obj_id_to_keys, env, False)
@@ -314,8 +371,14 @@ if __name__ == '__main__':
     logger.info('\n\n\nWith Rotations and Robustness')
     run_sweep(models, datasets, obj_id_to_keys, env, True)
 
-    # plot_pr_curve(models, datasets, obj_id_to_keys, env, False)
-    # plot_pr_curve(baseline_models, datasets, obj_id_to_keys, env, False)
+    # plt.style.use('seaborn-darkgrid')
+    # plot_pr_curve(baseline_models, datasets, obj_id_to_keys, env, False, 'Baseline')
+    # plot_pr_curve(models, datasets, obj_id_to_keys, env, False, 'Baseline + Rotations')
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.legend(frameon=True, prop={'size': 16})
+    # plt.show()
+    # plt.savefig('/home/chriscorrea14/param_sweep.png')
 
 
 
