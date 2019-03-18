@@ -17,7 +17,7 @@ SEED = 107
 MAX_FINAL_POSES = 20
 MAX_VERTICES = 1000
 CAMERA_POSE = camera_pose()
-START_AT_OBJ_ID = 61
+START_AT_OBJ_ID = 114
 
 def pad_h(array, length=MAX_VERTICES):
     h, w = array.shape

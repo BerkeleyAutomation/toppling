@@ -6,63 +6,67 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rollout a policy for bin picking in order to evaluate performance')
-    parser.add_argument('--logfile', type=str, help='configuration file to use')
+    # parser.add_argument('--logfile', type=str, help='configuration file to use')
     args = parser.parse_args()
+    args.logfiles = [
+        '/nfs/diskstation/db/toppling/tuned_simulated.log',
+        # '/nfs/diskstation/db/toppling/toppling_simulated_50k.log'
+    ]
     vi_increases, vi_planning_times, vi_path_lengths = [], [], []
     g_increases, g_planning_times, g_path_lengths = [], [], []
     rand_increases, rand_planning_times, rand_path_lengths = [], [], []
 
     improvable_initial_q, non_improvable_initial_q = [], []
-    with open(args.logfile, 'r') as file:
-        i = 0
-        for line in file:
+    for logfile in args.logfiles:
+        with open(logfile, 'r') as file:
+            i = 0
+            for line in file:
+                if line.startswith('Value Iteration Original Quality: '):
+                    current_quality = float(line.split()[-1])
+                if line.startswith('Value Iteration Final Quality: '):
+                    vi_final_quality = float(line.split()[-1])
+                if line.startswith('Value Iteration Path Length: '):
+                    vi_path_length = int(line.split()[-1])
+                if line.startswith('Value Iteration Planning Time: '):
+                    vi_planning_time = float(line.split()[-1])
+                if line.startswith('Value Iteration No Actions: '):
+                    vi_no_actions = eval(line.split()[-1])
+                if line.startswith('Value Iteration Already Best: '):
+                    vi_already_best = eval(line.split()[-1])
+                if line.startswith('Greedy Final Quality: '):
+                    g_final_quality = float(line.split()[-1])
+                if line.startswith('Greedy Path Length: '):
+                    g_path_length = int(line.split()[-1])
+                if line.startswith('Greedy Planning Time: '):
+                    g_planning_time = float(line.split()[-1])
+                if line.startswith('Greedy No Actions: '):
+                    g_no_actions = eval(line.split()[-1])
+                if line.startswith('Greedy Already Best: '):
+                    g_already_best = eval(line.split()[-1])
+                if line.startswith('Random Final Quality: '):
+                    rand_final_quality = float(line.split()[-1])
+                if line.startswith('Random Path Length: '):
+                    rand_path_length = int(line.split()[-1])
+                if line.startswith('Random Planning Time: '):
+                    rand_planning_time = float(line.split()[-1])
 
-            if line.startswith('Value Iteration Original Quality: '):
-                current_quality = float(line.split()[-1])
-            if line.startswith('Value Iteration Final Quality: '):
-                vi_final_quality = float(line.split()[-1])
-            if line.startswith('Value Iteration Path Length: '):
-                vi_path_length = int(line.split()[-1])
-            if line.startswith('Value Iteration Planning Time: '):
-                vi_planning_time = float(line.split()[-1])
-            if line.startswith('Value Iteration No Actions: '):
-                vi_no_actions = eval(line.split()[-1])
-            if line.startswith('Value Iteration Already Best: '):
-                vi_already_best = eval(line.split()[-1])
-            if line.startswith('Greedy Final Quality: '):
-                g_final_quality = float(line.split()[-1])
-            if line.startswith('Greedy Path Length: '):
-                g_path_length = int(line.split()[-1])
-            if line.startswith('Greedy Planning Time: '):
-                g_planning_time = float(line.split()[-1])
-            if line.startswith('Greedy No Actions: '):
-                g_no_actions = eval(line.split()[-1])
-            if line.startswith('Greedy Already Best: '):
-                g_already_best = eval(line.split()[-1])
-            if line.startswith('Random Final Quality: '):
-                rand_final_quality = float(line.split()[-1])
-            if line.startswith('Random Path Length: '):
-                rand_path_length = int(line.split()[-1])
-            if line.startswith('Random Planning Time: '):
-                rand_planning_time = float(line.split()[-1])
+                if line == '\n':
+                    i += 1
+                    if (vi_no_actions and g_no_actions) or (vi_already_best and g_already_best):
+                        non_improvable_initial_q.append(current_quality)
+                        continue
+                    improvable_initial_q.append(current_quality)
+                    vi_increases.append(vi_final_quality - current_quality)
+                    g_increases.append(g_final_quality - current_quality)
+                    rand_increases.append(rand_final_quality - current_quality)
 
-            if line == '\n':
-                i += 1
-                if (vi_no_actions and g_no_actions) or (vi_already_best and g_already_best):
-                    non_improvable_initial_q.append(current_quality)
-                    continue
-                improvable_initial_q.append(current_quality)
-                vi_increases.append(vi_final_quality - current_quality)
-                g_increases.append(g_final_quality - current_quality)
-                rand_increases.append(rand_final_quality - current_quality)
-
-                vi_planning_times.append(vi_planning_time / (vi_path_length+1))
-                g_planning_times.append(g_planning_time / (g_path_length+1))
-                rand_planning_times.append(rand_planning_time / (rand_path_length+1))
-                
-                vi_path_lengths.append(vi_path_length)
-                g_path_lengths.append(g_path_length)
-                rand_path_lengths.append(rand_path_length)
+                    vi_planning_times.append(vi_planning_time / (vi_path_length+1))
+                    g_planning_times.append(g_planning_time / (g_path_length+1))
+                    rand_planning_times.append(rand_planning_time / (rand_path_length+1))
+                    
+                    vi_path_lengths.append(vi_path_length)
+                    g_path_lengths.append(g_path_length)
+                    rand_path_lengths.append(rand_path_length)
     print 'Num Rollouts: {}, Num helpful: {}'.format(i, len(vi_increases))
     #print vi_increases
     print 'vi increase', np.mean(vi_increases)
