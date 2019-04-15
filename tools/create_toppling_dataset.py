@@ -9,6 +9,7 @@ from time import time
 from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.envs import GraspingEnv, NoRemainingSamplesException
 from dexnet.visualization import DexNetVisualizer3D as vis3d
+from dexnet.constants import *
 from toppling.policies import SingleTopplePolicy
 from toppling import is_equivalent_pose, camera_pose, normalize, up
 
@@ -16,6 +17,7 @@ SEED = 107
 MAX_FINAL_POSES = 20
 MAX_VERTICES = 1000
 CAMERA_POSE = camera_pose()
+START_AT_OBJ_ID = 61
 
 def pad_h(array, length=MAX_VERTICES):
     h, w = array.shape
@@ -56,13 +58,14 @@ def parse_args():
     return args
 
 def get_dataset(config, args):
-    print args
-    tensor_config = config['dataset']['tensors']
-    for field_name in ['vertices', 'normals', 'vertex_probs', 'min_required_forces']:
-        tensor_config['fields'][field_name]['height'] = args.num_samples
-    tensor_config['fields']['final_poses']['height']
+    # print args
+    # tensor_config = config['dataset']['tensors']
+    # for field_name in ['vertices', 'normals', 'vertex_probs', 'min_required_forces']:
+    #     tensor_config['fields'][field_name]['height'] = args.num_samples
+    # tensor_config['fields']['final_poses']['height']
 
-    return TensorDataset(args.output, tensor_config)
+    # return TensorDataset(args.output, tensor_config)
+    return TensorDataset.open(args.output, access_mode='READ_WRITE')
 
 if __name__ ==  '__main__':
     args = parse_args()
@@ -78,13 +81,33 @@ if __name__ ==  '__main__':
     datapoint = dataset.datapoint_template
     
     env = GraspingEnv(config, config['vis'])
-    obj_keys_to_id, obj_id = {}, 0
+    obj_keys_to_id, obj_id = {}, START_AT_OBJ_ID
     a = time()
-    while True:
-        try:
-            env.reset()
-        except NoRemainingSamplesException:
-            break
+    # ----------------------
+    # while True:
+    #     try:
+    #         env.reset()
+    #     except NoRemainingSamplesException:
+    #         break
+    # ----------------------
+    obj_names = []
+    with open('/nfs/diskstation/db/toppling/find_objects/dexnet4.log', 'r') as file:
+        for line in file:
+            if line.startswith('useful'):
+                obj_names.append(line.split(' ')[1][:-1])
+    print obj_names
+    obj_names = obj_names[START_AT_OBJ_ID:]
+    print obj_names
+    num_faces = []
+    env.reset()
+    for obj_name in obj_names:
+        dataset_name, key = obj_name.split(KEY_SEP_TOKEN)
+        env.state.obj = env._state_space._database.dataset(dataset_name)[key]
+        # n_f = len(env.state.obj.mesh.convex_hull.faces)
+        # num_faces.append(n_f)
+        # continue
+    # ----------------------
+        print 'Computing Topples for obj', obj_id    
         env.state.material_props._color = np.array([0.5] * 3)
         policy.set_environment(env.environment)
         obj_keys_to_id[env.state.obj.key] = deepcopy(obj_id)
@@ -95,6 +118,7 @@ if __name__ ==  '__main__':
             n_samples=obj_config['stp_num_samples'],
             threshold=obj_config['stp_min_prob']
         )
+        print 'num poses', len(stable_poses)
         for pose_num, pose in enumerate(stable_poses):
             print 'Computing Topples for pose', pose_num
             rot, trans = RigidTransform.rotation_and_translation_from_matrix(pose)
@@ -104,6 +128,9 @@ if __name__ ==  '__main__':
             if args.before:
                 env.render_3d_scene()        
                 vis3d.show(starting_camera_pose=CAMERA_POSE)
+                skip = raw_input('skip?')
+                if skip == 'y':
+                    continue
 
             vertices, normals, final_poses, vertex_probs, min_required_forces = policy.compute_topple(env.state)
             num_final_poses = len(final_poses)
@@ -127,8 +154,10 @@ if __name__ ==  '__main__':
 
             dataset.add(datapoint)
         obj_id += 1
+        dataset.flush()
         #break
+    # print np.mean(num_faces)
     with open(args.output+"/obj_ids.json", "w") as write_file:
-        json.dump(obj_keys_to_id, write_file)
+       json.dump(obj_keys_to_id, write_file)
     dataset.flush()
     print 'Computation time', time() - a

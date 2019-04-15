@@ -93,14 +93,13 @@ class TopplePolicy(MultiEnvPolicy):
             # y = normalize(start - end)
             # z = normalize(np.cross(y, up))
             # x = normalize(np.cross(y, z))
-
-            x = normalize(start - end)
+            # x = normalize(start - end)
+            x = normalize(end - start)
             y = normalize(np.cross(x, up))
             z = normalize(np.cross(x, y))
             return np.hstack((x.reshape((-1,1)), y.reshape((-1,1)), z.reshape((-1,1))))
 
         R_push = get_hand_rot()
-        
         start_pose = RigidTransform(
             rotation=R_push,
             translation=start,
@@ -450,12 +449,15 @@ class TestTopplePolicy(TopplePolicy):
             # best_ind = best_topple_vertices[least_force]
             topple_probs_equal = topple_probs + 1e-4
             index_probs = topple_probs_equal / np.sum(topple_probs_equal)
-            best_ind = np.random.choice(np.arange(len(topple_probs)), p=index_probs)
+            normal = up
+            while not (np.arccos(normal.dot(up)) < 2.356 and np.arccos(normal.dot(up)) > 0.7853):
+                best_ind = np.random.choice(np.arange(len(topple_probs)), p=index_probs)
+                normal = normals[best_ind]
         else:
             best_ind = idx
         print 'Index: {} Predicted probability: {}'.format(best_ind, topple_probs[best_ind])
 
-        start_position = vertices[best_ind] + normals[best_ind] * .03
+        start_position = vertices[best_ind] + normals[best_ind] * .04
         end_position = vertices[best_ind] - normals[best_ind] * .08
         
         start_pose, end_pose = self.get_hand_pose(start_position, end_position)

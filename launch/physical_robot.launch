@@ -1,0 +1,5 @@
+<launch>
+	<node name='phoxi_camera' pkg='phoxi_camera' type='phoxi_camera_node.cpp' output='screen' />
+	<node name='autolab_suction' pkg='autolab_suction' type='suction_node.py' output='screen' />
+	<include file="$(find yumi_moveit_config)/launch/planning.launch"/>
+</launch>

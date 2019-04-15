@@ -2,14 +2,18 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import argparse
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Rollout a policy for bin picking in order to evaluate performance')
+    parser.add_argument('--logfile', type=str, help='configuration file to use')
+    args = parser.parse_args()
     vi_increases, vi_planning_times, vi_path_lengths = [], [], []
     g_increases, g_planning_times, g_path_lengths = [], [], []
     rand_increases, rand_planning_times, rand_path_lengths = [], [], []
 
     improvable_initial_q, non_improvable_initial_q = [], []
-    with open('/home/chriscorrea14/toppling_simulated1551496920.log', 'r') as file:
+    with open(args.logfile, 'r') as file:
         i = 0
         for line in file:
 
@@ -59,7 +63,7 @@ if __name__ == '__main__':
                 vi_path_lengths.append(vi_path_length)
                 g_path_lengths.append(g_path_length)
                 rand_path_lengths.append(rand_path_length)
-    print i, len(vi_increases)
+    print 'Num Rollouts: {}, Num helpful: {}'.format(i, len(vi_increases))
     #print vi_increases
     print 'vi increase', np.mean(vi_increases)
     print 'g increase', np.mean(g_increases)
@@ -112,4 +116,4 @@ if __name__ == '__main__':
     plt.ylabel('')
     plt.title('Planning Time (s)')
     plt.show()
-    #plt.savefig('/home/chriscorrea14/simulated_experiments.png')
+    # plt.savefig('/home/chriscorrea14/simulated_experiments.png')
