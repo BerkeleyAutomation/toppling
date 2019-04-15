@@ -18,10 +18,9 @@ from toppling import camera_pose, is_equivalent_pose, pose_diff, pose_angle
 
 CAMERA_POSE = camera_pose()
 SEED = 107
-NUM_MODELS = 2
-NUM_MODELS_TO_KEEP = 1
+NUM_MODELS = 500
+NUM_MODELS_TO_KEEP = 10
 NUM_PER_DATAPOINT = 10
-K = 5
 
 def to_rigid(mat):
     rot, trans = RigidTransform.rotation_and_translation_from_matrix(mat)
@@ -35,14 +34,12 @@ def precision_recall(pos_probs, neg_probs, num_toppled, thresh):
     return thresh, precision, recall
 
 def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity):
-    # cross_entropy, total_datapoints = 0, 0
-    y_true, y_pred = [], []
-    # counter = 0
-    # n = 0
-    combined_tvs, combined_l1s, avg_precisions = [], [], []
+    tvs, l1s, topple_true, topple_pred, pose_true, pose_pred = [], [], [], [], [], []
     total_datapoints = 0
     for dataset, obj_id_to_key in zip(datasets, obj_id_to_keys):
         total_datapoints += dataset.num_datapoints
+        per_obj_tvs, per_obj_l1s = [], []
+        per_obj_topple_true, per_obj_topple_pred, per_obj_pose_true, per_obj_pose_pred = [], [], [], []
         for i in range(dataset.num_datapoints):
             datapoint = dataset.datapoint(i)
 
@@ -60,16 +57,15 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
                 use_sensitivity=use_sensitivity
             )
             vertex_probs = vertex_probs[0]
-            y_pred.extend([1-vertex_probs[0]] * NUM_PER_DATAPOINT)
+            per_obj_topple_pred.extend([1-vertex_probs[0]] * NUM_PER_DATAPOINT)
 
             empirical_dist = []
-            pose_y_true, pose_y_pred = [], []
             for i in range(NUM_PER_DATAPOINT):
                 actual_pose_mat = datapoint['actual_poses'][i*4:(i+1)*4]
                 rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose_mat)
                 pose_to_add = RigidTransform(rot, trans, 'obj', 'world')
 
-                y_true.append(0 if is_equivalent_pose(pose_to_add, orig_pose) else 1)
+                per_obj_topple_true.append(0 if is_equivalent_pose(pose_to_add, orig_pose) else 1)
 
                 found = False
                 for i in range(len(empirical_dist)):
@@ -85,13 +81,13 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
                 for predicted_pose, predicted_prob in zip(predicted_poses, vertex_probs):
                     if is_equivalent_pose(pose_to_add, predicted_pose):
                         found = True
-                        pose_y_true.append(1)
+                        per_obj_pose_true.append(1)
                     else:
-                        pose_y_true.append(0)
-                    pose_y_pred.append(predicted_prob)
+                        per_obj_pose_true.append(0)
+                    per_obj_pose_pred.append(predicted_prob)
                 if not found:
-                    pose_y_true.append(1)
-                    pose_y_pred.append(0)
+                    per_obj_pose_true.append(1)
+                    per_obj_pose_pred.append(0)
             
             total_variation, l1 = 1, []
             for empirical_pose, empirical_prob in empirical_dist:
@@ -101,15 +97,9 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
                         l1.append(abs(empirical_prob - predicted_prob))
                         break
             l1 = np.mean(l1) if len(l1) > 0 else 0
-            # if i + total_datapoints in test_set:
-            #     test_tvs.append(total_variation)
-            #     test_l1s.append(l1)
-            # else:
-            #     train_tvs.append(total_variation)
-            #     train_l1s.append(l1)
-            combined_tvs.append(total_variation)
-            combined_l1s.append(l1)
-            avg_precisions.append(metrics.average_precision_score(pose_y_true, pose_y_pred))
+            per_obj_tvs.append(total_variation)
+            per_obj_l1s.append(l1)
+            # avg_precisions.append(metrics.average_precision_score(pose_y_true, pose_y_pred))
             # for i in range(10):
             #     actual_pose_mat = datapoint['actual_poses'][i*4:(i+1)*4]
             #     rot, trans = RigidTransform.rotation_and_translation_from_matrix(actual_pose_mat)
@@ -144,17 +134,30 @@ def evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
             #     #     # env.state.obj.T_obj_world = to_rigid(datapoint['obj_pose'])
             #     # q_x = max(q_x, 1e-5)
             #     # cross_entropy -= .1 * np.log(q_x) # p(x) * log(q(x))
-            #     # n += .1 
+            #     # n += .1
+        if len(per_obj_tvs) < 10:
+            per_obj_tvs.extend([0]*(10-len(per_obj_tvs)))
+            per_obj_l1s.extend([0]*(10-len(per_obj_l1s)))
+        tvs.append(per_obj_tvs)
+        l1s.append(per_obj_l1s)
 
-    # logger.info('Mean Cross Entropy '+str(cross_entropy/float(n)))
-    # logger.info('frac 0: {} {} {}'.format(counter, 10*total_datapoints, counter / float(10*total_datapoints)))
+        if len(per_obj_tvs) < 10*NUM_PER_DATAPOINT:
+            per_obj_topple_true.extend([0]*(10*NUM_PER_DATAPOINT-len(per_obj_topple_true)))
+            per_obj_topple_pred.extend([0]*(10*NUM_PER_DATAPOINT-len(per_obj_topple_pred)))
+        topple_true.append(per_obj_topple_true)
+        topple_pred.append(per_obj_topple_pred)
+
+        if len(per_obj_pose_true) < 600:
+            per_obj_pose_true.extend([0]*(600-len(per_obj_pose_true)))
+            per_obj_pose_pred.extend([0]*(600-len(per_obj_pose_pred)))
+        pose_true.append(per_obj_pose_true)
+        pose_pred.append(per_obj_pose_pred)
 
     # precision, recall, _ = metrics.precision_recall_curve(y_true, y_pred)
     # aucs.append(metrics.auc(recall, precision))
     # prs.append((precision, recall, model))
     # return np.mean(train_tvs), np.mean(test_tvs), np.mean(combined_tvs), np.mean(train_l1s), np.mean(test_l1s), np.mean(combined_l1s)
-    avg_precision = metrics.average_precision_score(y_true, y_pred)
-    return combined_tvs, combined_l1s, avg_precisions, (avg_precision, y_true, y_pred)
+    return np.array(tvs), np.array(l1s), np.array(topple_true), np.array(topple_pred), np.array(pose_true), np.array(pose_pred)
 
 # def run_sweep(models, datasets, obj_id_to_keys, test_set, env, use_sensitivity):
 #     train_tvs, test_tvs, combined_tvs = [], [], []
@@ -227,12 +230,10 @@ def plot_pr_curve(models, datasets, obj_id_to_keys, env, use_sensitivity, label)
         y_trues.append(y_true)
         y_preds.append(y_pred)
     best_model = np.argmax(avg_precisions)
-    print y_trues[best_model]
-    print y_preds[best_model]
     precision, recall, thresh = metrics.precision_recall_curve(y_trues[best_model], y_preds[best_model])
     plt.plot(recall, precision, label=label, linewidth=5.0)
 
-def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=False):
+def run_sweep_old(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=False):
     def compute_cv(metrics, idx, use_max):
         metrics = metrics[:,idx]
 
@@ -277,7 +278,12 @@ def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=Fa
                 avg_train = metrics.average_precision_score(train_y_true, train_y_pred)
             
             best_model_idx = np.argmin(avg_train)
-            cv.append(metrics.average_precision_score(test_y_true[best_model_idx], test_y_pred[best_model_idx]))
+            if np.sum(test_y_true[best_model]) == 0:
+                test_precision = 1
+            else:
+                test_precision = metrics.average_precision_score(test_y_true[best_model_idx], test_y_pred[best_model_idx])
+
+            cv.append(test_precision)
         return np.mean(cv)
 
     tvs, l1s, avg_ps = [], [], []
@@ -309,6 +315,94 @@ def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=Fa
     if plot_pr:
         pr_curve(best_y_true, best_y_pred)
     logger.info('Avg CV TV: {}, Avg CV L1: {}, Avg CV (Avg Precision) {}, Best Avg Precision: {}'.format(tv_cv, l1_cv, map_cv, best_avg_precision))
+
+def run_sweep(models, datasets, obj_id_to_keys, env, use_sensitivity, plot_pr=False):
+    def compute_cv(metrics):
+        cv, idxs = [], []
+        num_objs = metrics.shape[1]
+        for k in range(num_objs):
+            train = []
+            for i in range(num_objs):
+                if i != k:
+                    train.append(metrics[:,i])
+            train = np.hstack(train)
+            test = metrics[:,k]
+            avg_train = np.mean(train, axis=1)
+            avg_test = np.mean(test, axis=1)
+
+            best_model_idx = np.argmin(avg_train)
+            idxs.append(best_model_idx)
+            cv.append(avg_test[best_model_idx])
+        return np.mean(cv), idxs
+
+    def compute_map_cv(y_true, y_pred):
+        cv, idxs = [], []
+        num_objs = y_true.shape[1]
+        for k in range(num_objs):
+            y_true_train, y_pred_train = [], []
+            for i in range(num_objs):
+                if i != k:
+                    y_true_train.append(y_true[:,i])
+                    y_pred_train.append(y_pred[:,i])
+            y_true_train = np.hstack(y_true_train)
+            y_pred_train = np.hstack(y_pred_train)
+            y_true_test = y_true[:,k]
+            y_pred_test = y_pred[:,k]
+
+            train_maps = []
+            for t, p in zip(y_true_train, y_pred_train):
+                train_maps.append(metrics.average_precision_score(t, p))
+
+            best_model_idx = np.argmax(train_maps)
+            if np.sum(y_true_test[best_model_idx]) == 0:
+                test_precision = 1
+            else:
+                test_precision = metrics.average_precision_score(y_true_test[best_model_idx], y_pred_test[best_model_idx])
+
+            idxs.append(best_model_idx)
+            cv.append(test_precision)
+        return np.mean(cv), idxs
+
+    tvs, l1s, topple_trues, topple_preds, pose_trues, pose_preds = [], [], [], [], [], []
+    for i, model in enumerate(models):
+        tv, l1, topple_true, topple_pred, pose_true, pose_pred = evaluate_single_model(model, datasets, obj_id_to_keys, env, use_sensitivity)
+        if np.sum(pose_true) == 0:
+            pose_map = 1
+        else:
+            pose_map = metrics.average_precision_score(pose_true.flatten(), pose_pred.flatten())
+        if np.sum(topple_true) == 0:
+            topple_map = 1
+        else:
+            topple_map = metrics.average_precision_score(topple_true.flatten(), topple_pred.flatten())
+
+        logger.info('{}: {} TV: {} L1: {} Pose MAP: {} MAP: {}'.format(
+            i, model.readable_str(),
+            np.mean(tv),
+            np.mean(l1),
+            pose_map, topple_map
+        ))
+        tvs.append(tv)
+        l1s.append(l1)
+        topple_trues.append(topple_true)
+        topple_preds.append(topple_pred)
+        pose_trues.append(pose_true)
+        pose_preds.append(pose_pred)
+    tvs = np.array(tvs)
+    l1s = np.array(l1s)
+    topple_trues = np.array(topple_trues)
+    topple_preds = np.array(topple_preds)
+    pose_trues = np.array(pose_trues)
+    pose_preds = np.array(pose_preds)
+    
+    tv_cv, idxs = compute_cv(tvs)
+    logger.info('tv best models'+str(idxs))
+    l1_cv = compute_cv(l1s)
+    logger.info('l1 best models'+str(idxs))
+    topple_cv, idxs = compute_map_cv(topple_trues, topple_preds)
+    logger.info('topple best models'+str(idxs))
+    pose_cv, idxs = compute_map_cv(pose_trues, pose_preds)
+    logger.info('poses best modeos'+str(idxs))
+    logger.info('TV CV: {}, L1 CV: {}, Topple MAP CV: {}, Pose MAP CV: {}'.format(tv_cv, l1_cv, topple_cv, pose_cv))
 
 def parse_args():
     default_config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),

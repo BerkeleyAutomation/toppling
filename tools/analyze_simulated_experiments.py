@@ -10,7 +10,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.logfiles = [
         '/nfs/diskstation/db/toppling/tuned_simulated.log',
-        # '/nfs/diskstation/db/toppling/toppling_simulated_50k.log'
+        '/nfs/diskstation/db/toppling/toppling_simulated_50k.log'
     ]
     vi_increases, vi_planning_times, vi_path_lengths = [], [], []
     g_increases, g_planning_times, g_path_lengths = [], [], []
@@ -21,6 +21,8 @@ if __name__ == '__main__':
         with open(logfile, 'r') as file:
             i = 0
             for line in file:
+                if i >= 10000:
+                    break
                 if line.startswith('Value Iteration Original Quality: '):
                     current_quality = float(line.split()[-1])
                 if line.startswith('Value Iteration Final Quality: '):
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     g_df = pd.DataFrame({'Suction Grasp Quality Increases': g_increases})
     g_df['Policy Name'] = 'Greedy'
     r_df = pd.DataFrame({'Suction Grasp Quality Increases': rand_increases})
-    r_df['Policy Name'] = 'Random'
+    r_df['Policy Name'] = 'Max-Height'
     df = pd.concat([r_df, g_df, v_df]) 
     barplot = sns.barplot(x='Policy Name', y='Suction Grasp Quality Increases', data=df, capsize=.2)
     #barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30)
@@ -112,7 +114,7 @@ if __name__ == '__main__':
     g_df = pd.DataFrame({'Planning Time (s)': g_planning_times})
     g_df['Policy Name'] = 'Greedy'
     r_df = pd.DataFrame({'Planning Time (s)': rand_planning_times})
-    r_df['Policy Name'] = 'Random'
+    r_df['Policy Name'] = 'Max-Height'
     df = pd.concat([r_df, g_df, v_df])
     barplot = sns.barplot(x='Policy Name', y='Planning Time (s)', data=df, capsize=.2)
     #barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30)
