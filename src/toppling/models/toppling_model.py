@@ -269,10 +269,14 @@ class TopplingModel():
                 normals[i] = np.array([0,0,0])
                 continue
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
+            obj_rotation = RigidTransform.rotation_from_axis_and_origin([0,0,1], self.mesh.center_mass, np.random.normal(scale=self.obj_rot_sigma))
+            ray_origin = obj_rotation * ray_origin
+            ray_dir = obj_rotation * -normals[i]
+
             intersect, _, face_ind = \
-                self.mesh.ray.intersects_location([ray_origin], [-normals[i]], multiple_hits=False)
+                self.mesh.ray.intersects_location([ray_origin], [ray_dir], multiple_hits=False)
             _, _, back_face_ind = \
-                self.mesh.ray.intersects_location([ray_origin], [normals[i]], multiple_hits=False)
+                self.mesh.ray.intersects_location([ray_origin], [ray_dir], multiple_hits=False)
             if len(face_ind) == 0 or len(back_face_ind) != 0:
                 vertices[i] = np.array([0,0,0])
                 normals[i] = np.array([0,0,0])
@@ -283,6 +287,18 @@ class TopplingModel():
         finger_friction_noises = 1 + np.random.normal(scale=self.finger_friction_sigma, size=len(vertices)) / self.finger_friction_coeff
         if self.log:
             print 'noise time:', time() - a
+
+        from dexnet.visualization import Visualizer3D as vis3d
+        j = 214
+        a = j*self.n_trials
+        b = (j+1)*self.n_trials
+        for i in range(a,b):
+            start = vertices[i]
+            end = start - .01 * push_directions[i]
+            vis3d.plot([start, end], color=[0,1,0], radius=.0002)
+        vis3d.mesh(self.mesh, self.obj.T_obj_world.matrix)
+        vis3d.show()
+
         return vertices, normals, push_directions, ground_friction_noises, finger_friction_noises
 
     def tipping_point_rotations(self):
