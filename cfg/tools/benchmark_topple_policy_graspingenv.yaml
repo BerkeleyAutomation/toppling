@@ -329,79 +329,79 @@ state_space:
       - 0.15
 
   object: 
-    # database_path: /nfs/diskstation/db/dexnet_4.hdf5
-    # object_keys:
-    #   # thingiverse: all
-    #   # thingiverse-packaged: all
-    #   # kit: all
-    #   # 3dnet: all
-    #   # big-kit: all
-    #   # big-3dnet: all
-    #   3dnet:
-    #     - a1106fcebabd81743dbb1d116dac64cc
-    #     - f6e6117261dca163713c042b393cc65b
-    #   big-3dnet:
-    #     - 7cde0fe08897826bc8635ea1c31dd83b
-    #   kit:
-    #     - ChocMarshmallows_800_tex
-    #     - DropsCherry_800_tex
-    #     - FruitDrink_800_tex
-    #     - MashedPotatoes_800_tex
-    #     - YellowSaltCylinderSmall_800_tex
-    #   # thingiverse-packaged:
-    #   #   - 1155807_packaged
-    #   #   - 1582663_packaged
-    #   #   - 158744_packaged
-    #   #   - 1731450_packaged
-    #   #   - 1844600_packaged
-    #   #   - 2051244_cc_1_packaged
-    #   #   - 247257_packaged
-    #   #   - 3583419_cc_1_packaged
-    #   #   - 3972023_packaged
-    #   #   - 4002664_packaged
-    #   #   - 4114494_packaged
-    #   #   - 418148_packaged
-    #   #   - 611153_packaged
-    #   thingiverse:
-    #     - 1004412_cc_2
-    #     - 1004412_cc_4
-    #     - 1004412_cc_9
-    #     - '1007033'
-    #     - '110974'
-    #     - '123359'
-    #     - 1654153_cc_8
-    #     - '1741374'
-    #     - '2126297'
-    #     - '2251217'
-    #     - '2269036'
-    #     - '2287012'
-    #     - '254890'
-    #     - '262891'
-    #     - 2868252_cc_0
-    #     - '2934508'
-    #     - '2976392'
-    #     - '3179982'
-    #     - '3269998'
-    #     - '3405701'
-    #     - '340807'
-    #     - 3533658_cc_0
-    #     - '3587508'
-    #     - '3715766'
-    #     - '379811'
-    #     - '3876080'
-    #     - '3888003'
-    #     - '4048565'
-    #     - '407637'
-    #     - '4222924'
-    #     - 4327741_cc_1
-    #     - 4398113_cc_1
-    #     - '4473407'
-    #     - 4493080_cc_3
-    #     - '4496215'
-    #     - '4497916'
-    #     - '4559086'
-    #     - '824647'
-    #     - '970521'
+    database_path: /nfs/diskstation/db/dexnet_4.hdf5
+    object_keys:
+    #   thingiverse: all
+    #   thingiverse-packaged: all
+    #   kit: all
+    #   3dnet: all
+    #   big-kit: all
+    #   big-3dnet: all
+      # 3dnet:
+      #   - a1106fcebabd81743dbb1d116dac64cc
+      #   - f6e6117261dca163713c042b393cc65b
+      # big-3dnet:
+      #   - 7cde0fe08897826bc8635ea1c31dd83b
+      # kit:
+      #   - ChocMarshmallows_800_tex
+      #   - DropsCherry_800_tex
+      #   - FruitDrink_800_tex
+      #   - MashedPotatoes_800_tex
+      #   - YellowSaltCylinderSmall_800_tex
+      # # thingiverse-packaged:
+      # #   - 1155807_packaged
+      # #   - 1582663_packaged
+      # #   - 158744_packaged
+      # #   - 1731450_packaged
+      # #   - 1844600_packaged
+      # #   - 2051244_cc_1_packaged
+      # #   - 247257_packaged
+      # #   - 3583419_cc_1_packaged
+      # #   - 3972023_packaged
+      # #   - 4002664_packaged
+      # #   - 4114494_packaged
+      # #   - 418148_packaged
+      # #   - 611153_packaged
+      # thingiverse:
+      #   - 1004412_cc_2
+      #   - 1004412_cc_4
+      #   - 1004412_cc_9
+      #   - '1007033'
+      #   - '110974'
+      #   - '123359'
+      #   - 1654153_cc_8
+      #   - '1741374'
+      #   - '2126297'
+      #   - '2251217'
+      #   - '2269036'
+      #   - '2287012'
+      #   - '254890'
+      #   - '262891'
+      #   - 2868252_cc_0
+      #   - '2934508'
+      #   - '2976392'
+      #   - '3179982'
+      #   - '3269998'
+      #   - '3405701'
+      #   - '340807'
+      #   - 3533658_cc_0
+      #   - '3587508'
+      #   - '3715766'
+      #   - '379811'
+      #   - '3876080'
+      #   - '3888003'
+      #   - '4048565'
+      #   - '407637'
+      #   - '4222924'
+      #   - 4327741_cc_1
+      #   # - 4398113_cc_1
+      #   - '4473407'
+      #   - 4493080_cc_3
+      #   - '4496215'
+      #   - '4497916'
+      #   - '4559086'
+      #   - '824647'
+      #   - '970521'
 
     # database_path: /nfs/diskstation/db/toppling.hdf5
     # object_keys:

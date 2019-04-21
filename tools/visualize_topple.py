@@ -288,6 +288,92 @@ def figure_3():
     vis3d.show(starting_camera_pose=CAMERA_POSE)
     sys.exit()
 
+def failure_modes():
+    # dataset = env._state_space._database.dataset('mini_dexnet')
+    # obj = dataset['pawn']
+    # obj.T_obj_world = dataset.stable_poses('pawn')[8].T_obj_table
+    # env.state.obj = obj
+
+    # mesh = obj.mesh.copy().apply_transform(env.state.T_obj_world.matrix)
+    # mesh.fix_normals()
+    # direction = normalize([1, -.005, 0])
+    # intersect, _, face_ind = mesh.ray.intersects_location([[-1, 0, .09]], [direction], multiple_hits=False)
+    # direction = normalize([1,-0.25,0])
+    # start_point = intersect[0] - .03*direction
+    # end_point = intersect[0]
+    # shaft_points = [start_point, end_point]
+    # h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    # h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    # head_points = [end_point - 0.01*h2, end_point, end_point - 0.01*h1]
+    # vis3d.plot3d(shaft_points, color=red, tube_radius=.001)
+    # vis3d.plot3d(head_points, color=red, tube_radius=.001)
+    
+
+    # env.render_3d_scene()
+    # vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+    # env.render_3d_scene()
+    # vis3d.show(starting_camera_pose=CAMERA_POSE) 
+
+    # env.state.obj.T_obj_world = dataset.stable_poses('pawn')[0].T_obj_table
+    # env.render_3d_scene()
+    # vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+
+
+
+
+    # dataset = env._state_space._database.dataset('mini_dexnet')
+    # obj = dataset['yoda']
+    # obj.T_obj_world = dataset.stable_poses('yoda')[2].T_obj_table
+    # env.state.obj = obj
+
+    # mesh = obj.mesh.copy().apply_transform(env.state.T_obj_world.matrix)
+    # mesh.fix_normals()
+    # direction = normalize([0, .1, 0])
+    # intersect = mesh.center_mass + np.array([0,-.015,.037])
+    # start_point = intersect - .03*direction
+    # end_point = intersect
+    # shaft_points = [start_point, end_point]
+    # h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    # h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    # head_points = [end_point - 0.01*h2, end_point, end_point - 0.01*h1]
+    # vis3d.plot3d(shaft_points, color=red, tube_radius=.001)
+    # vis3d.plot3d(head_points, color=red, tube_radius=.001)
+    
+    # env.render_3d_scene()
+    # vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+    # env.state.obj.T_obj_world = dataset.stable_poses('yoda')[4].T_obj_table
+    # env.render_3d_scene()
+    # vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+
+    dataset = env._state_space._database.dataset('mini_dexnet')
+    obj = dataset['vase']
+    obj.T_obj_world = dataset.stable_poses('vase')[5].T_obj_table
+    env.state.obj = obj
+
+    mesh = obj.mesh.copy().apply_transform(env.state.T_obj_world.matrix)
+    mesh.fix_normals()
+    direction = normalize([.03, .1, 0])
+    intersect = mesh.center_mass + np.array([-.019,-.02,.02])
+    start_point = intersect - .03*direction
+    end_point = intersect
+    shaft_points = [start_point, end_point]
+    h1 = np.array([[0.7071,-0.7071,0],[0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    h2 = np.array([[0.7071,0.7071,0],[-0.7071,0.7071,0],[0,0,1]]).dot(direction)
+    head_points = [end_point - 0.01*h2, end_point, end_point - 0.01*h1]
+    vis3d.plot3d(shaft_points, color=red, tube_radius=.001)
+    vis3d.plot3d(head_points, color=red, tube_radius=.001)
+    
+    env.render_3d_scene()
+    vis3d.show(starting_camera_pose=CAMERA_POSE)
+
+    env.state.obj.T_obj_world = dataset.stable_poses('vase')[4].T_obj_table
+    env.render_3d_scene()
+    vis3d.show(starting_camera_pose=CAMERA_POSE)
+
 def noise_vis():
     print 'best actions', np.max(action.metadata['vertex_probs'], axis=0)
     render_3d_scene(env)
@@ -391,8 +477,14 @@ if __name__ == '__main__':
 
     #figure_1()
     #figure_2()
+<<<<<<< HEAD
     #figure_3()
     figure_0()
+=======
+    # figure_3()
+    # figure_0()
+    failure_modes()
+>>>>>>> e9cb2563ba5681b50511c256f12cfcf742cf406a
     action = policy.action(env.state)
     #noise_vis()
 
