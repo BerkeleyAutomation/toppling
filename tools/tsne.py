@@ -16,14 +16,18 @@ def plot(params, projected_params, metrics, model, metric_name, lower_better=Fal
         else:
             c = [min(1, 2*(1-metric)), min(2*metric, 1), 0]
         plt.plot(projected[0], projected[1], c=c, marker='o')
-        annotate = True
-        for ann_point in ann_points:
-            diff = projected - ann_point
-            diff[1] *= 3
-            if np.linalg.norm(projected - ann_point) < 6:
-                annotate = False
-                break
-        if annotate:
+        # annotate = True
+        # for ann_point in ann_points:
+        #     diff = projected - ann_point
+        #     diff[1] *= 3
+        #     if np.linalg.norm(projected - ann_point) < 5:
+        #         annotate = False
+        #         break
+        if lower_better:
+            annotate = metric == np.min(metrics)
+        else:
+            annotate = metric == np.max(metrics)
+        if annotate and len(ann_points) == 0:
             ann_points.append(projected)
             plt.annotate(str(param), xy=projected, xytext=(70, 20),
                 textcoords='offset points', ha='right', va='bottom',
@@ -58,7 +62,7 @@ if __name__ == '__main__':
                 plot(params, tsne_results, tvs, model_types[curr_model], 'TV', lower_better=True)
                 #plot(params, tsne_results, l1s, model_types[curr_model], 'TV')
                 # plot(params, tsne_results, pose_maps, model_types[curr_model], 'Pose MAP')
-                # plot(params, tsne_results, topple_maps, model_types[curr_model], 'Topple MAP')
+                plot(params, tsne_results, topple_maps, model_types[curr_model], 'Topple MAP')
                 params, tvs, l1s, topple_maps, pose_maps = [], [], [], [], []
                 curr_model += 1
             if len(line.split('ground friction')) == 1:

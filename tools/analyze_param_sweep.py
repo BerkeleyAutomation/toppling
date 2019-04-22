@@ -107,11 +107,16 @@ if __name__ == '__main__':
         # TopplingModel(get_model_config(model_config, 3.6747e-01, 9.9801e-01, 8.3000e-04, 8.9320e-02, False)),
         # TopplingModel(get_model_config(model_config, 3.4084e-01, 6.6242e-01, 6.3000e-04, 8.8170e-02, True)),
         # TopplingModel(get_model_config(model_config, 3.1186e-01, 9.3045e-01, 4.1000e-04, 8.3230e-02, False)),
-        TopplingModel(get_model_config(model_config, 2.70e-01, 1.22e+00, 5.50e-04, 6.00e-02, 4.00e-02, True)),
-        TopplingModel(get_model_config(model_config, 3.60e-01, 1.22e+00, 8.50e-04, 8.00e-02, 2.20e-01, False)),
-        TopplingModel(get_model_config(model_config, 0.3, 0.68, 0.0007, 0.05, 0.17, True)),
-        TopplingModel(get_model_config(model_config, 3.6e-01, 9.2e-01, 6.6e-04, 7.0e-02, 2.2e-01, False)),
-        #TopplingModel(get_model_config(config, ))
+
+        # TopplingModel(get_model_config(model_config, 2.70e-01, 1.22e+00, 5.50e-04, 6.00e-02, 4.00e-02, True)),
+        # TopplingModel(get_model_config(model_config, 3.60e-01, 1.22e+00, 8.50e-04, 8.00e-02, 2.20e-01, False)),
+        # TopplingModel(get_model_config(model_config, 0.3, 0.68, 0.0007, 0.05, 0.17, True)),
+        # TopplingModel(get_model_config(model_config, 3.6e-01, 9.2e-01, 6.6e-04, 7.0e-02, 2.2e-01, False)),
+
+        TopplingModel(get_model_config(model_config, .3, .9, 6.6e-04, 6.5e-02, 2.2e-01, True)),
+        TopplingModel(get_model_config(model_config, .3, .9, 6.6e-04, 6.5e-02, 2.2e-01, False)),
+        TopplingModel(get_model_config(model_config, .3, .9, 6.6e-04, 6.5e-02, 2.2e-01, True)),
+        TopplingModel(get_model_config(model_config, .3, .9, 6.6e-04, 6.5e-02, 2.2e-01, False))
     ]
     use_sensitivities = [False, False, True, True]
     model_names = ['Baseline', 'Baseline+Rotations', 'Baseline+Robustness', 'Robust Model']
