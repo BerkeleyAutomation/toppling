@@ -135,6 +135,19 @@ class TopplePolicy(MultiEnvPolicy):
             push_directions, 
             use_sensitivity=self.use_sensitivity
         )
+
+        from dexnet.visualization import DexNetVisualizer3D as vis3d
+        from autolab_core import Point
+        # j = 6 # gearbox
+        j = 50 # vase
+        a = j*self.toppling_model.n_trials
+        b = (j+1)*self.toppling_model.n_trials
+        for i in range(a,b):
+            start = self.toppling_model.vertices[i]
+            end = start - .01 * self.toppling_model.push_directions[i]
+            vis3d.plot3d([start, end], color=[0,1,0], tube_radius=.0002)
+        vis3d.mesh(state.mesh, state.T_obj_world)
+        vis3d.show()
         return vertices, normals, poses, vertex_probs, min_required_forces
 
     def load_topple(self, state):

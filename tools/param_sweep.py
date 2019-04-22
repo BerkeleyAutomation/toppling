@@ -18,11 +18,7 @@ from toppling import camera_pose, is_equivalent_pose, pose_diff, pose_angle
 
 CAMERA_POSE = camera_pose()
 SEED = 107
-<<<<<<< HEAD
-NUM_MODELS = 100
-=======
-NUM_MODELS = 500
->>>>>>> e9cb2563ba5681b50511c256f12cfcf742cf406a
+NUM_MODELS = 400
 NUM_MODELS_TO_KEEP = 10
 NUM_PER_DATAPOINT = 10
 
@@ -435,10 +431,11 @@ if __name__ == '__main__':
     model_config = config['model']
     for _ in range(NUM_MODELS):
         model_config['baseline'] = 0
-        model_config['ground_friction_coeff'] = np.random.uniform(.1, .7)
-        model_config['finger_friction_coeff'] = np.random.uniform(.3, 1)
+        model_config['ground_friction_coeff'] = np.random.uniform(0, 1.1)
+        model_config['finger_friction_coeff'] = np.random.uniform(0, 1.4)
         model_config['finger_sigma'] = np.random.uniform(.0003, .0009)
         model_config['push_direction_sigma'] = np.random.uniform(.03, .09)
+        model_config['obj_rot_sigma'] = np.random.uniform(0, .3)
         models.append(TopplingModel(model_config))
         model_config['baseline'] = 1
         baseline_models.append(TopplingModel(model_config))

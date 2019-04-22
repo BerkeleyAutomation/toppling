@@ -2,6 +2,7 @@ import numpy as np
 import os
 import argparse
 import json
+import random
 
 from toppling.models import TopplingModel
 from toppling import is_equivalent_pose
@@ -11,16 +12,18 @@ from dexnet.constants import *
 from dexnet.visualization import DexNetVisualizer3D as vis3d
 
 NUM_PER_DATAPOINT = 10
+SEED = 107
 
 def to_rigid(mat):
     rot, trans = RigidTransform.rotation_and_translation_from_matrix(mat)
     return RigidTransform(rot, trans, 'obj', 'world')
 
-def get_model_config(config, ground_friction_coeff, finger_friction_coeff, finger_sigma, push_direction_sigma, baseline):
+def get_model_config(config, ground_friction_coeff, finger_friction_coeff, finger_sigma, push_direction_sigma, obj_rot_sigma, baseline):
     config['ground_friction_coeff'] = ground_friction_coeff
     config['finger_friction_coeff'] = finger_friction_coeff
     config['finger_sigma'] = finger_sigma
     config['push_direction_sigma'] = push_direction_sigma
+    config['obj_rot_sigma'] = obj_rot_sigma
     config['baseline'] = baseline
     return config
 
@@ -54,7 +57,7 @@ def visualize(env, datasets, obj_id_to_keys, models, model_names, use_sensitivit
                 )
                 probs.append(1-vertex_probs[0,0])
 
-            if (abs(probs[3] - actual) - abs(probs[2] - actual)) > .2:
+            if -(abs(probs[3] - actual) - abs(probs[2] - actual)) > .1:
                 print 'actual {} {} {} {} {} {} {} {} {}'.format(actual,
                     model_names[0], probs[0], model_names[1], probs[1],
                     model_names[2], probs[2], model_names[3], probs[3]
@@ -100,10 +103,14 @@ if __name__ == '__main__':
 
     model_config = config['model']
     models = [
-        TopplingModel(get_model_config(model_config, 2.7351e-01, 8.0404e-01, 7.4000e-04, 7.0320e-02, True)),
-        TopplingModel(get_model_config(model_config, 3.6747e-01, 9.9801e-01, 8.3000e-04, 8.9320e-02, False)),
-        TopplingModel(get_model_config(model_config, 3.4084e-01, 6.6242e-01, 6.3000e-04, 8.8170e-02, True)),
-        TopplingModel(get_model_config(model_config, 3.1186e-01, 9.3045e-01, 4.1000e-04, 8.3230e-02, False)),
+        # TopplingModel(get_model_config(model_config, 2.7351e-01, 8.0404e-01, 7.4000e-04, 7.0320e-02, True)),
+        # TopplingModel(get_model_config(model_config, 3.6747e-01, 9.9801e-01, 8.3000e-04, 8.9320e-02, False)),
+        # TopplingModel(get_model_config(model_config, 3.4084e-01, 6.6242e-01, 6.3000e-04, 8.8170e-02, True)),
+        # TopplingModel(get_model_config(model_config, 3.1186e-01, 9.3045e-01, 4.1000e-04, 8.3230e-02, False)),
+        TopplingModel(get_model_config(model_config, 2.70e-01, 1.22e+00, 5.50e-04, 6.00e-02, 4.00e-02, True)),
+        TopplingModel(get_model_config(model_config, 3.60e-01, 1.22e+00, 8.50e-04, 8.00e-02, 2.20e-01, False)),
+        TopplingModel(get_model_config(model_config, 0.3, 0.68, 0.0007, 0.05, 0.17, True)),
+        TopplingModel(get_model_config(model_config, 3.6e-01, 9.2e-01, 6.6e-04, 7.0e-02, 2.2e-01, False)),
         #TopplingModel(get_model_config(config, ))
     ]
     use_sensitivities = [False, False, True, True]

@@ -1,7 +1,7 @@
 # general params
 steps_per_test_case: 2
 rollouts_per_garbage_collect: 10
-debug: 0
+debug: 1
 
 # policy params
 fully_observed: 1
@@ -29,6 +29,7 @@ model:
   # push_direction_sigma: .07
   finger_sigma: 0.000622
   push_direction_sigma: .069
+  obj_rot_sigma: .22
   n_trials: 50
   max_force: 400 # 10x the average for gearbox
   log: 0
@@ -329,8 +330,8 @@ state_space:
       - 0.15
 
   object: 
-    database_path: /nfs/diskstation/db/dexnet_4.hdf5
-    object_keys:
+    # database_path: /nfs/diskstation/db/dexnet_4.hdf5
+    # object_keys:
     #   thingiverse: all
     #   thingiverse-packaged: all
     #   kit: all
@@ -445,12 +446,12 @@ state_space:
         # - endstop_holder
         # - gearbox # pose 5
         # - yoda # pose 2
-        # - vase
+        - vase
         # - pipe_connector
         # - pawn # pose 6, 8?
         # - bar_clamp # pose 2
         # - part1
-        - mount1
+        # - mount1
       # adversarial:
       #   - demon_helmet
       

@@ -2,19 +2,19 @@ policy:
   type: dexnet_greedy
 
   database:
-    database_path: /nfs/diskstation/db/dexnet_4.hdf5
-    object_keys:
-      thingiverse: all
-      thingiverse-packaged: all
-      kit: all
-      3dnet: all
-      big-kit: all
-      big-3dnet: all
-
-    # database_path: /nfs/diskstation/db/toppling0.hdf5
+    # database_path: /nfs/diskstation/db/dexnet_4.hdf5
     # object_keys:
-    #   mini_dexnet: all
-    #   #adversarial: all
+    #   thingiverse: all
+    #   thingiverse-packaged: all
+    #   kit: all
+    #   3dnet: all
+    #   big-kit: all
+    #   big-3dnet: all
+
+    database_path: /nfs/diskstation/db/toppling0.hdf5
+    object_keys:
+      mini_dexnet: all
+      #adversarial: all
     
     # database_path: /nfs/diskstation/db/toppling2.hdf5
     # object_keys:

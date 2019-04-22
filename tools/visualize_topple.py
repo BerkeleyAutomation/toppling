@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
     config = YamlConfig(args.config_filename)
     config['model']['load'] = 0
-    policy = SingleTopplePolicy(config, use_sensitivity=False)
+    policy = SingleTopplePolicy(config, use_sensitivity=True)
 
     if config['debug']:
         random.seed(SEED)
@@ -477,14 +477,11 @@ if __name__ == '__main__':
 
     #figure_1()
     #figure_2()
-<<<<<<< HEAD
     #figure_3()
-    figure_0()
-=======
+    #figure_0()
     # figure_3()
     # figure_0()
-    failure_modes()
->>>>>>> e9cb2563ba5681b50511c256f12cfcf742cf406a
+    #failure_modes()
     action = policy.action(env.state)
     #noise_vis()
 

@@ -29,6 +29,7 @@ class TopplingModel():
         
         self.finger_sigma = config['finger_sigma'] # noise for finger position
         self.push_direction_sigma = config['push_direction_sigma'] # noise for push direction
+        self.obj_rot_sigma = config['obj_rot_sigma']
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
         self.max_force = config['max_force']
         self.log = config['log']
@@ -37,11 +38,11 @@ class TopplingModel():
             self.load_object(obj)
 
     def readable_str(self):
-        return 'ground friction~N({}, {}), finger friction~N({}, {}), c_f~N(c_f, {}I), f_f~N(f_f, {}I) {}'.format(
+        return 'ground friction~N({:.4f}, {}), finger friction~N({:.4f}, {}), c_f~N(c_f, {:.7f}I), f_f~N(f_f, {:.4f}I), R_o~N(I, R_{:.4f})'.format(
            self.ground_friction_coeff, self.ground_friction_sigma,
            self.finger_friction_coeff, self.finger_friction_sigma,
            self.finger_sigma, self.push_direction_sigma,
-           'baseline' if self.baseline else ''
+           self.obj_rot_sigma
         )
 
     def __str__(self):
@@ -269,14 +270,15 @@ class TopplingModel():
                 normals[i] = np.array([0,0,0])
                 continue
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
-            obj_rotation = RigidTransform.rotation_from_axis_and_origin([0,0,1], self.mesh.center_mass, np.random.normal(scale=self.obj_rot_sigma))
-            ray_origin = obj_rotation * ray_origin
-            ray_dir = obj_rotation * -normals[i]
+            obj_rotation = RigidTransform.rotation_from_axis_and_origin([0,0,1], self.mesh.center_mass, np.random.normal(scale=self.obj_rot_sigma)).matrix
+            ray_origin = obj_rotation.dot(np.append(ray_origin, [1]))[:3]
+            ray_dir = obj_rotation.dot(np.append(-normals[i], [1]))[:3]
+            # ray_dir = -normals[i]
 
             intersect, _, face_ind = \
                 self.mesh.ray.intersects_location([ray_origin], [ray_dir], multiple_hits=False)
             _, _, back_face_ind = \
-                self.mesh.ray.intersects_location([ray_origin], [ray_dir], multiple_hits=False)
+                self.mesh.ray.intersects_location([ray_origin], [-ray_dir], multiple_hits=False)
             if len(face_ind) == 0 or len(back_face_ind) != 0:
                 vertices[i] = np.array([0,0,0])
                 normals[i] = np.array([0,0,0])
@@ -287,18 +289,6 @@ class TopplingModel():
         finger_friction_noises = 1 + np.random.normal(scale=self.finger_friction_sigma, size=len(vertices)) / self.finger_friction_coeff
         if self.log:
             print 'noise time:', time() - a
-
-        from dexnet.visualization import Visualizer3D as vis3d
-        j = 214
-        a = j*self.n_trials
-        b = (j+1)*self.n_trials
-        for i in range(a,b):
-            start = vertices[i]
-            end = start - .01 * push_directions[i]
-            vis3d.plot([start, end], color=[0,1,0], radius=.0002)
-        vis3d.mesh(self.mesh, self.obj.T_obj_world.matrix)
-        vis3d.show()
-
         return vertices, normals, push_directions, ground_friction_noises, finger_friction_noises
 
     def tipping_point_rotations(self):
