@@ -444,9 +444,9 @@ state_space:
     object_keys:
       mini_dexnet: 
         # - endstop_holder
-        # - gearbox # pose 5
+        - gearbox # pose 5
         # - yoda # pose 2
-        - vase
+        # - vase
         # - pipe_connector
         # - pawn # pose 6, 8?
         # - bar_clamp # pose 2

@@ -1,6 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+from toppling import normalize
+
+def compute_gradients(points, values):
+    # def grad_helper(points, values):
+    #     n_approx = 10
+    #     grads = []
+    #     for point, value in zip(points, values):
+    #         idxes = np.argsort((np.sqrt((points - point)**2).sum(axis=0)))
+    #         grad = np.zeros(3)
+    #         for idx in idxes[:n_approx]:
+    #             grad += (points[idx] - point) * (values[idx] - value)
+    #         grads.append(grad / n_approx)
+    #     return np.mean(grads, axis=0)
+    w1 = normalize(np.linalg.lstsq(points, values)[0])
+
+    projected_points = np.reshape(points.dot(w1), (-1,1)) * np.reshape(w1, (1,-1))
+    nullspace_points = points - projected_points
+    w2 = normalize(np.linalg.lstsq(nullspace_points, values)[0])
+    return w1, w2
+
+def project(points, w1, w2):
+    return np.hstack((points.dot(w1).reshape(-1,1), points.dot(w2).reshape(-1,1)))
 
 def plot(params, projected_params, metrics, model, metric_name, lower_better=False):
     # if lower_better:
@@ -53,16 +75,22 @@ if __name__ == '__main__':
                 print 'best models'
                 print params[np.argmin(tvs)], params[np.argmax(pose_maps)], params[np.argmax(topple_maps)]
 
-                if tsne_results is None:
-                    tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-                    scaled_params = params - np.mean(params, axis=0)
-                    scaled_params = scaled_params / np.std(scaled_params, axis=0)
-                    tsne_results = tsne.fit_transform(params)
+                # if tsne_results is None:
+                #     tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
+                #     scaled_params = params - np.mean(params, axis=0)
+                #     scaled_params = scaled_params / np.std(scaled_params, axis=0)
+                #     tsne_results = tsne.fit_transform(params)
+
+                w1, w2 = compute_gradients(params, topple_maps)
+                projected_results = project(params, w1, w2)
                 
-                plot(params, tsne_results, tvs, model_types[curr_model], 'TV', lower_better=True)
-                #plot(params, tsne_results, l1s, model_types[curr_model], 'TV')
-                # plot(params, tsne_results, pose_maps, model_types[curr_model], 'Pose MAP')
-                plot(params, tsne_results, topple_maps, model_types[curr_model], 'Topple MAP')
+                # # plot(params, tsne_results, tvs, model_types[curr_model], 'TV', lower_better=True)
+                # # plot(params, tsne_results, pose_maps, model_types[curr_model], 'Pose MAP')
+                # plot(params, tsne_results, topple_maps, model_types[curr_model], 'Topple MAP')
+
+                # plot(params, projected_results, tvs, model_types[curr_model], 'TV', lower_better=True)
+                # plot(params, projected_results, pose_maps, model_types[curr_model], 'Pose MAP')
+                plot(params, projected_results, topple_maps, model_types[curr_model], 'Topple MAP')
                 params, tvs, l1s, topple_maps, pose_maps = [], [], [], [], []
                 curr_model += 1
             if len(line.split('ground friction')) == 1:
@@ -76,7 +104,6 @@ if __name__ == '__main__':
                 params.append([ground_friction, finger_friction, c_f, f_f, r])
 
                 tvs.append(float(line.split('TV: ')[-1][:4]))
-                #l1s.append(float(line.split('L1: ')[-1][:7]))
                 pose_maps.append(float(line.split('Pose MAP: ')[-1][:4]))
                 topple_maps.append(float(line.split('MAP: ')[-1][:4]))
             except Exception, e:

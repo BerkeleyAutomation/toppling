@@ -270,7 +270,8 @@ class TopplingModel():
                 normals[i] = np.array([0,0,0])
                 continue
             ray_origin = vertices[i] + np.random.normal(scale=self.finger_sigma, size=3) + .001 * normals[i]
-            obj_rotation = RigidTransform.rotation_from_axis_and_origin([0,0,1], self.mesh.center_mass, np.random.normal(scale=self.obj_rot_sigma)).matrix
+            rand_axis = normalize(np.random.rand(3))
+            obj_rotation = RigidTransform.rotation_from_axis_and_origin(rand_axis, self.mesh.center_mass, np.random.normal(scale=self.obj_rot_sigma)).matrix
             ray_origin = obj_rotation.dot(np.append(ray_origin, [1]))[:3]
             ray_dir = obj_rotation.dot(np.append(-normals[i], [1]))[:3]
             # ray_dir = -normals[i]
