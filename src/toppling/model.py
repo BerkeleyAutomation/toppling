@@ -7,7 +7,7 @@ from time import time
 from itertools import groupby
 
 from autolab_core import RigidTransform, PointCloud, Point, TensorDataset
-from toppling import normalize, stable_pose, pose_diff, is_equivalent_pose, up
+from .utils import normalize, stable_pose, pose_diff, is_equivalent_pose, up
 
 class TopplingModel():
     def __init__(self, config, obj=None):

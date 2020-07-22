@@ -10,8 +10,8 @@ import numpy.ma as ma
 from trimesh import sample 
 from dexnet.envs import MultiEnvPolicy, DexNetGreedyGraspingPolicy, LinearPushAction, NoActionFoundException
 from autolab_core import YamlConfig, RigidTransform
-from toppling.models import TopplingModel, TopplingDatasetModel
-from toppling import normalize, up, is_equivalent_pose, camera_pose
+from .model import TopplingModel, TopplingDatasetModel
+from .utils import normalize, up, is_equivalent_pose, camera_pose
 
 class TopplePolicy(MultiEnvPolicy):
     __metaclass__ = ABCMeta

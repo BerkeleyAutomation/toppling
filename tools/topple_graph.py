@@ -11,7 +11,7 @@ from autolab_core import Point, RigidTransform, YamlConfig, TensorDataset
 from dexnet.constants import *
 from dexnet.envs import GraspingEnv, LinearPushAction
 from dexnet.visualization import DexNetVisualizer3D as vis3d
-from toppling.policies import SingleTopplePolicy, MultiTopplePolicy
+from toppling import SingleTopplePolicy, MultiTopplePolicy
 from toppling import camera_pose
 
 SEED = 107
@@ -69,7 +69,7 @@ def new_graph(G):
     for node_id, node in G.nodes(data=True):
         if node['node_type'] == 'action':
             continue
-        print 'Pose {}, GQ: {}'.format(node_id, node['gq'])
+        print('Pose {}, GQ: {}'.format(node_id, node['gq']))
         env.state.obj.T_obj_world = node['pose']
         env.render_3d_scene()
         vis3d.show(starting_camera_pose=CAMERA_POSE)
