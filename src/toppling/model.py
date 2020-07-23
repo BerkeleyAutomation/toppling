@@ -538,18 +538,19 @@ class TopplingModel():
 
 class TopplingDatasetModel():
     def __init__(self, datasets):
-        self.datasets = {dataset_name:TensorDataset.open(datasets[dataset_name]) for dataset_name in datasets.keys()}
+        self.datasets = {dataset_name: TensorDataset.open(datasets[dataset_name]) for dataset_name in datasets.keys()}
         self.obj_ids, self.id_to_datapoint = {}, []
         for dataset_name in datasets.keys():
             with open(datasets[dataset_name]+"/obj_ids.json", "r") as read_file:
                 obj_ids = json.load(read_file)
             dataset = self.datasets[dataset_name]
             for i in range(dataset.num_datapoints):
-                datapoint = dataset.datapoint(i)
+                datapoint = dataset.datapoint(i, field_names=["obj_id"])
                 self.id_to_datapoint.append((datapoint['obj_id'], i))
             self.obj_ids[dataset_name] = obj_ids
         self.id_to_datapoint = {k: list(v) for k, v in groupby(self.id_to_datapoint, key=lambda x: x[0])} 
         
+    
     def load_object(self, state):
         self.obj = state.obj
         self.com = self.obj.mesh.center_mass
@@ -564,7 +565,7 @@ class TopplingDatasetModel():
         # for i in [101]:
         obj_specific_datapoints = self.id_to_datapoint[obj_ids[self.obj.key]]
         for _, i in obj_specific_datapoints:
-            datapoint = dataset.datapoint(i)
+            datapoint = dataset.datapoint(i, field_names=["obj_id", "final_poses", "vertices", "num_vertices", "normals", "min_required_forces", "vertex_probs", "obj_pose"])
             if obj_ids[self.obj.key] != datapoint['obj_id']:
                continue
 
@@ -599,3 +600,32 @@ class TopplingDatasetModel():
         required_forces = self.datapoint['min_required_forces'][:num_vertices]
 
         return vertices, normals, final_poses, vertex_probs, required_forces
+
+    def topple_matrix(self, obj_key):
+        obj_dataset_name = obj_key.split('~')[0]
+        dataset = self.datasets[obj_dataset_name]
+        obj_ids = self.obj_ids[obj_dataset_name]
+        print(self.obj_ids)
+        self.datapoint = None
+
+        obj_specific_datapoints = self.id_to_datapoint[obj_ids[obj_key]]
+        num_poses = len(obj_specific_datapoints)
+        obj_poses = []
+        for _, i in obj_specific_datapoints:
+            datapoint = dataset.datapoint(i, field_names=["obj_pose"])
+            obj_poses.append(datapoint['obj_pose'])
+        obj_poses = np.array(obj_poses)
+
+        topple_mat = np.zeros((len(obj_poses), len(obj_poses)))
+        for j, (_, i) in enumerate(obj_specific_datapoints):
+            datapoint = dataset.datapoint(i, field_names=["final_poses", "num_vertices", "vertex_probs"])
+            final_poses = datapoint['final_poses']
+            final_poses = final_poses[final_poses.any(axis=1)].reshape(-1, 4, 4)
+            num_vertices = datapoint['num_vertices']
+            vertex_probs = datapoint['vertex_probs'][:num_vertices, :len(final_poses)].sum(axis=0) / num_vertices
+            fp_zs = np.repeat(np.linalg.inv(final_poses)[None, :, :3, 2], len(obj_poses), axis=0)
+            op_zs = np.repeat(np.linalg.inv(obj_poses)[:, None, :3, 2], len(final_poses), axis=1)
+            op_inds = np.linalg.norm(fp_zs - op_zs, axis=-1).argmin(axis=0)
+            topple_mat[j, op_inds] = vertex_probs
+        
+        return topple_mat, obj_poses

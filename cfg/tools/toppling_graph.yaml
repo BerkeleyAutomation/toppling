@@ -1,0 +1,11 @@
+datasets:
+  mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet_scaled
+  # mini_dexnet: /nfs/diskstation/db/toppling/mini_dexnet
+  # ycb: /nfs/diskstation/db/toppling/ycb/
+  # adversarial: /nfs/diskstation/db/toppling/adversarial
+  # thingiverse: /nfs/diskstation/db/toppling/tuned_params
+  # thingiverse-packaged: /nfs/diskstation/db/toppling/tuned_params
+  # kit: /nfs/diskstation/db/toppling/tuned_params
+  # 3dnet: /nfs/diskstation/db/toppling/tuned_params
+  # big-kit: /nfs/diskstation/db/toppling/tuned_params
+  # big-3dnet: /nfs/diskstation/db/toppling/tuned_params
