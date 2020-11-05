@@ -1,0 +1,14 @@
+fraction_before_short_circuit: 0.4
+num_approx: 30
+
+ground_friction_coeff: 0.37
+ground_friction_sigma: .1
+finger_friction_coeff: 0.82
+finger_friction_sigma: .2
+
+finger_sigma: 0.000622
+push_direction_sigma: 0.069
+obj_rot_sigma: 0.22
+n_trials: 5
+max_force: 400 # 10x the average for gearbox
+baseline: 0

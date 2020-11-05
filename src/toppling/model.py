@@ -32,8 +32,8 @@ class TopplingModel():
         self.obj_rot_sigma = config['obj_rot_sigma']
         self.n_trials = config['n_trials'] # if you choose to use sensitivity
         self.max_force = config['max_force']
-        self.log = config['log']
         self.baseline = config['baseline']
+        self.log = 0
         if obj != None:
             self.load_object(obj)
 
@@ -300,8 +300,8 @@ class TopplingModel():
             
             x = normalize(com_projected_on_edge - self.com)
             y = -normalize(np.cross(x, up))
-            a = .2 if self.obj.key == "mini_dexnet~yoda" else .01
-            topple_angle = math.acos(np.dot(x, -up)) + a#.01
+            # a = .2 if self.obj.key == "mini_dexnet~yoda" else .01
+            topple_angle = math.acos(np.dot(x, -up)) + 0.01
             tipping_point_rotations.append(RigidTransform.rotation_from_axis_and_origin(y, edge_point1, topple_angle))
         return tipping_point_rotations
 
@@ -324,7 +324,7 @@ class TopplingModel():
             # print lowest_z, edge_point1[2]
             # if lowest_z >= self.lowest_z: # object would topple
             if True:
-                resting_pose = self.obj.obj.resting_pose(R_initial)
+                resting_pose = self.obj.resting_pose(R_initial)
                 final_poses.append(resting_pose)
                 # final_poses.append(R_initial)
             else:
@@ -408,7 +408,6 @@ class TopplingModel():
         """
         n_trials = 1
         if use_sensitivity:
-            n_trials = self.n_trials
             (
                 vertices, 
                 normals, 
@@ -419,7 +418,7 @@ class TopplingModel():
                 vertices, 
                 normals, 
                 push_directions, 
-                n_trials
+                self.n_trials
             )
 
         tipping_point_rotations = self.tipping_point_rotations()
