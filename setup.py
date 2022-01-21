@@ -14,7 +14,7 @@ requirements = [
     'trimesh[easy]',
 
     # External repos
-    'ipython==5.5.0',
+    'ipython==7.16.3',
     'matplotlib',
     'numpy',
     'pybullet'
